@@ -1,0 +1,47 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Raw data: keep only the directory placeholder
+data/raw/*
+!data/raw/.gitkeep
+
+# Generated model artifacts: keep only the directory placeholder
+models/*
+!models/.gitkeep
+*.pkl
+*.pickle
+*.joblib
+*.onnx
+
+# Common experiment trackers and generated outputs
+mlruns/
+wandb/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+*~
