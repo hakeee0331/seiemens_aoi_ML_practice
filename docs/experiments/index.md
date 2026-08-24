@@ -16,22 +16,6 @@
 | `0824_kimjaehak_006_type_conditioned_baseline` | 완료 | kimjaehak | mapping 기반 검사유형별 XGBoost 베이스라인 | Type-conditioned XGBoost | Test F1 0.3632, Recall 0.3161, PR-AUC 0.3154 |
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
-
-## 상태 값
-
-- `Example`: 형식 참고용 파일
-- `진행 중`: 실험이 아직 완료되지 않음
-- `완료`: 전체 셀 실행과 문서 기록이 완료됨
-- `중단`: 실험을 중단했으며 이유가 기록됨
-
-## 추가 규칙
-
-- 실험 ID는 `MMDD_작성자_실험번호_설명` 형식을 사용한다.
-- 실험 번호는 날짜가 바뀌어도 작성자별로 계속 증가시킨다.
-- 노트북, 실험 문서, 저장 모델은 동일한 stem을 사용한다.
-- 주요 결과에는 핵심 지표나 한 줄 결론만 기록한다.
-- 상세 코드와 출력은 노트북에, 목적과 변경사항 및 결론은 개별 실험 문서에 기록한다.
-- 모델의 최종 Test 비교 결과는 `docs/model_val.md`에도 기록한다.
 | `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
 | `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
 | `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
@@ -48,3 +32,19 @@
 | `0824_dongjin_019_rule_injection` | 완료 | dongjin | RuleFit 룰셋을 Boolean 변수로 데이터 주입 | XGBoost + ADASYN + Rule | 정밀도(Precision) 최고치 48.5% 달성 (오탐지 253건 대폭 감소) |
 | `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
 | `0824_dongjin_021_adasyn_time_decay` | 완료 | dongjin | Type-Cond 분리 + ADASYN + Time-Decay 가중치 | XGBoost (5 models) | Test PR-AUC 0.260, Recall 35.3% (Temporal Drift 억제 절반의 성공) |
+
+## 상태 값
+
+- `Example`: 형식 참고용 파일
+- `진행 중`: 실험이 아직 완료되지 않음
+- `완료`: 전체 셀 실행과 문서 기록이 완료됨
+- `중단`: 실험을 중단했으며 이유가 기록됨
+
+## 추가 규칙
+
+- 실험 ID는 `MMDD_작성자_실험번호_설명` 형식을 사용한다.
+- 실험 번호는 날짜가 바뀌어도 작성자별로 계속 증가시킨다.
+- 노트북, 실험 문서, 저장 모델은 동일한 stem을 사용한다.
+- 주요 결과에는 핵심 지표나 한 줄 결론만 기록한다.
+- 상세 코드와 출력은 노트북에, 목적과 변경사항 및 결론은 개별 실험 문서에 기록한다.
+- 모델의 최종 Test 비교 결과는 `docs/model_val.md`에도 기록한다.
