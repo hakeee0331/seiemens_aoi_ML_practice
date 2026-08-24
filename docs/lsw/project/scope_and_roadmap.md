@@ -18,6 +18,44 @@
 - Compact 모델 경량화: feature selection, tree depth 축소, early stopping,
   ONNX 변환 + ONNX Runtime CPU 추론, INT8 MLP distillation
 
+## 평가지표 기록 규칙 (2026-08-23 확정)
+
+학습(모델 파라미터 fit)과 평가는 기준이 다르다.
+
+- **학습 지표**: loss(log-loss 등). 비용비율을 학습 목적함수에 직접 넣지 않는다
+  (재학습 없이 임계값만 바꿔 여러 비용비율에 대응하기 위함).
+- **의사결정(운영 임계값) 지표**: 총비용/Slip Rate/Volume Reduction. 학습된
+  모델의 예측 확률에 사후적으로 적용한다.
+- **Feature selection·불균형 처리 "방법 선택"**: loss/PR-AUC 같은 aggregate
+  지표만으로 판단하지 않고, 반드시 Slip Rate/Volume Reduction/총비용으로도
+  확인한다. `0823_lsw_002_baseline`에서 확인했듯 전체 AUC는 양호해도(0.915)
+  Slip Rate 제약이 걸리는 극단적 저확률 구간에서 캘리브레이션이 깨질 수 있어서,
+  aggregate 지표만으로는 이 문제를 놓칠 수 있다.
+
+이후 모든 모델 실험(baseline 이후)은 노트북 결론에 아래 지표를 가능한 한 함께
+기록한다 — 최종 의사결정은 위 3개 지표로 하되, 아래는 모델 행동을 해석하기 위한
+보조 진단 지표로 폭넓게 남긴다.
+
+- PR-AUC (threshold-무관 판별력)
+- 혼동행렬(Confusion Matrix)
+- 선택된 운영 임계값(threshold)
+- 실제 defect recall (=1-Slip Rate, 표현만 다름)
+- False Call reduction (=Volume Reduction, 표현만 다름)
+- (여유가 되면) Calibration curve 또는 Brier score — threshold 안정성 진단용
+
+### 총비용 비율 (임시값, 2026-08-23)
+
+정확한 비용을 팀이 아직 확정하지 못해서, 모델/feature set 선택 시 아래 두
+비율(오검:미검 = FP:FN)로 총비용을 병행 계산한다. 둘 다에서 같은 결론이 나오면
+비율 불확실성에 대해 로버스트하다는 근거로 쓰고, 결론이 갈리면 그 자체를
+보고한다.
+
+- 시나리오 A: FP:FN = 1:10 (`COST_FP=1`, `COST_FN=10`)
+- 시나리오 B: FP:FN = 1:100 (`COST_FP=1`, `COST_FN=100`)
+
+`0823_lsw_002_baseline`에서는 시나리오 B(1:100)만 사용했다. 이후 실험부터는
+두 시나리오를 함께 계산한다.
+
 **교수님 피드백: scope이 작다** → 아래 4가지를 추가해 "단순 이진분류 + 경량화"를
 넘어 데이터 자체의 알려진 난제(불균형, drift, 라벨노이즈)에 대한 방법론적 기여와
 비지도 이상탐지 관점을 더한 프로젝트로 확장.
