@@ -18,6 +18,7 @@
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
 | `0824_lsw_004_imbalance_handling` | 완료 | lsw | 5분리 구조에서 불균형 처리 기법(class_weight/SMOTE/ADASYN/undersampling) 비교 | XGBoost (type×기법) | 유형마다 최적 기법이 다름 — type1/2는 class_weight로 Slip Rate 개선, type0/3/4는 어떤 기법도 목표(≤1%) 미달성 |
 | `0825_lsw_005_drift_label_robust` | 완료 | lsw | recency weighting(sample_weight 시간감쇠) + 라벨 최근값 보정(삭제 대신 수정)으로 drift 대응 재검증 | XGBoost (type×half-life, type×라벨보정) | 두 기법 모두 004의 검사유형별 최적 조합 순위를 뒤집지 못함 — 004 결론이 재검증에도 유지됨 |
+| `0825_lsw_006_sliding_window_drift` | 완료 | lsw | 같은 크기(40%) Train 윈도우를 20%씩 밀며 매번 새로 학습 — 재학습해도 시간에 따라 성능이 떨어지는지 확인 | XGBoost (type×step) | type0/1/3은 마지막 구간(80~100%)에서 Volume Reduction 급락(예: type0 48%→7%) — 재학습만으로는 drift 상쇄 안 됨 |
 | `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
 | `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
 | `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
