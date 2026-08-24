@@ -13,6 +13,7 @@
 | `0823_kimjaehak_004_duplicate_groups` | 완료 | kimjaehak | 완전 중복·timestamp 그룹·signature 재등장 분석 | 해당 없음 | 중복 초과 8,752건, test의 9.6704%가 이전 signature 재등장 |
 | `0824_peace_001_eda` | 완료 | peace | Siemens AOI 데이터 EDA와 시간 드리프트 점검 | 해당 없음 | 실제 불량 1.05%, Test 불량률은 Train의 약 5.2배 |
 | `0824_kimjaehak_005_xgboost_baseline` | 완료 | kimjaehak | 시간순 분할 기반 XGBoost 단순 베이스라인 | XGBoost | Test F1 0.3066, Recall 0.2623, PR-AUC 0.2368 |
+| `peace_experiment1_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
 
 ## 상태 값
 
