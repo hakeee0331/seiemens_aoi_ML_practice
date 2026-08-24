@@ -24,5 +24,6 @@
 | Experiment | Model | Test period (UTC) | PR-AUC | Threshold | Real Defect Recall | TP | FN | False Call Reduction | Notebook |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | [`0824_kimjaehak_005_xgboost_baseline`](experiments/0824_kimjaehak_005_xgboost_baseline.md) | XGBoost baseline | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.237 | 0.500 | 26.2% | 590 | 1,659 | 98.7% | [notebook](../notebooks/0824_kimjaehak_005_xgboost_baseline.ipynb) |
+| [`0824_kimjaehak_006_type_conditioned_baseline`](experiments/0824_kimjaehak_006_type_conditioned_baseline.md) | Type-conditioned XGBoost baseline | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.315 | 0.500 | 31.6% | 711 | 1,538 | 98.7% | [notebook](../notebooks/0824_kimjaehak_006_type_conditioned_baseline.ipynb) |
 
 표에는 비교하기 쉬운 반올림 값을 표시한다. 정확한 계산값과 confusion matrix는 연결된 실험 문서와 노트북에 기록한다.
