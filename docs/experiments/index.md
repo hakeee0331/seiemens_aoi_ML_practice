@@ -5,6 +5,10 @@
 | 실험 ID | 상태 | 작성자 | 설명 | 모델 | 주요 결과 |
 |---|---|---|---|---|---|
 | `0823_example_001_baseline` | Example | example | 실험 작성 형식 예시 | Logistic Regression | 합성 데이터 실행 예시 |
+| `0823_kimjaehak_001_eda` | 완료 | kimjaehak | AOI 원본 데이터의 전반적 구조와 품질 분석 | 해당 없음 | 440,274행, true defect 1.0498%, 완전 중복 초과 행 8,752건 |
+| `0823_kimjaehak_002_temporal_drift` | 완료 | kimjaehak | 시간순 그룹 분할과 train-test drift 분석 | 해당 없음 | test 불량률 2.6405%, PSI 큰 피처 20/113개 |
+| `0823_kimjaehak_003_feature_validity` | 완료 | kimjaehak | 검사유형별 유효·무효 피처 패턴 분석 | 해당 없음 | 전역 미매핑 5개, 유형별 잠정 후보 27/12/18/17/10개 |
+| `0823_kimjaehak_004_duplicate_groups` | 완료 | kimjaehak | 완전 중복·timestamp 그룹·signature 재등장 분석 | 해당 없음 | 중복 초과 8,752건, test의 9.6704%가 이전 signature 재등장 |
 
 ## 상태 값
 
