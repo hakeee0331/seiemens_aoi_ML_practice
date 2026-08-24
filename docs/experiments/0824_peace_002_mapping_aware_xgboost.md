@@ -1,8 +1,8 @@
-# peace_experiment1_mapping_aware_xgboost
+# 0824_peace_002_mapping_aware_xgboost
 
 ## 연결된 노트북
 
-`notebooks/peace_experiment1_mapping_aware_xgboost.ipynb`
+`notebooks/0824_peace_002_mapping_aware_xgboost.ipynb`
 
 ## 상태
 
@@ -325,7 +325,7 @@ Test Recall이 95% 미만이면 목표 미달로 기록한다. Test 결과를 �
 
 모델 파일:
 
-`models/peace_experiment1_mapping_aware_xgboost.pkl`
+`models/0824_peace_002_mapping_aware_xgboost.pkl`
 
 `joblib.dump` 대상은 다음 키를 포함한 하나의 dictionary로 고정한다.
 
@@ -425,4 +425,4 @@ walk_forward_summary
 
 노트북 실행 후 다음 경로에 저장한다.
 
-`models/peace_experiment1_mapping_aware_xgboost.pkl`
+`models/0824_peace_002_mapping_aware_xgboost.pkl`
