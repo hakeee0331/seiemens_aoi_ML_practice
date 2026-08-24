@@ -45,3 +45,4 @@
 | `0824_dongjin_018_rulefit` | 완료 | dongjin | RuleFit을 활용한 명시적 IF-THEN 규칙 도출 | XGBoost + RuleFit | 장비별 임계값(Threshold) 수치화 성공 |
 | `0824_dongjin_019_rule_injection` | 완료 | dongjin | RuleFit 룰셋을 Boolean 변수로 데이터 주입 | XGBoost + ADASYN + Rule | 정밀도(Precision) 최고치 48.5% 달성 (오탐지 253건 대폭 감소) |
 | `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
+| `0824_dongjin_021_adasyn_time_decay` | 완료 | dongjin | Type-Cond 분리 + ADASYN + Time-Decay 가중치 | XGBoost (5 models) | Test PR-AUC 0.260, Recall 35.3% (Temporal Drift 억제 절반의 성공) |

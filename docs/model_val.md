@@ -36,5 +36,6 @@
 | [`0824_dongjin_012_smote`](experiments/0824_dongjin_sampling_methods.md) | XGBoost + SMOTE | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.394 | 0.500 | 47.8% | 1,076 | 1,173 | 98.0% | [notebook](../notebooks/0824_dongjin_012_smote.ipynb) |
 | [`0824_dongjin_013_adasyn`](experiments/0824_dongjin_sampling_methods.md) | XGBoost + ADASYN | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.456 | 0.500 | 49.2% | 1,108 | 1,141 | 98.2% | [notebook](../notebooks/0824_dongjin_013_adasyn.ipynb) |
 | [`0824_dongjin_015_isolation_forest`](experiments/0824_dongjin_015_isolation_forest.md) | Isolation Forest | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.036 | N/A | 0.0% | 0 | 2,249 | 100.0% | [notebook](../notebooks/0824_dongjin_015_isolation_forest.ipynb) |
+| [`0824_dongjin_021_adasyn_time_decay`](experiments/0824_dongjin_021_adasyn_time_decay.md) | XGBoost + Type-Cond ADASYN + Time-Decay | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.260 | 0.963 | 35.3% | 794 | 1,455 | 98.3% | [notebook](../notebooks/0824_dongjin_021_adasyn_time_decay.ipynb) |
 
 표에는 비교하기 쉬운 반올림 값을 표시한다. 정확한 계산값과 confusion matrix는 연결된 실험 문서와 노트북에 기록한다.
