@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Kimjaehak Sandbox Experiment Report · 2026-08-25 06:07 KST</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #627080;
+      --line: #dfe5eb;
+      --paper: #ffffff;
+      --canvas: #f2f5f7;
+      --navy: #173a5e;
+      --blue: #246ea8;
+      --cyan: #1f8a9e;
+      --green: #237a57;
+      --green-soft: #e8f5ee;
+      --amber: #9b6515;
+      --amber-soft: #fff4d9;
+      --red: #a64040;
+      --red-soft: #fdecec;
+      --violet: #6553a3;
+      --violet-soft: #f0edfb;
+      --shadow: 0 16px 40px rgba(27, 47, 66, .09);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      line-height: 1.68;
+      word-break: keep-all;
+    }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--navy); }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .hero {
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(58, 177, 192, .34), transparent 24%),
+        radial-gradient(circle at 8% 110%, rgba(62, 127, 190, .36), transparent 31%),
+        linear-gradient(135deg, #102b47 0%, #173f65 58%, #1e6178 100%);
+      padding: 70px 28px 56px;
+    }
+    .hero-inner, main, .footer-inner { width: min(1180px, 100%); margin: 0 auto; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 11px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 20px 0 14px; max-width: 860px; font-size: clamp(34px, 5vw, 62px); line-height: 1.1; letter-spacing: -.045em; }
+    .hero-lead { max-width: 850px; margin: 0; color: #dbeaf3; font-size: clamp(17px, 2vw, 21px); }
+    .meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 34px; }
+    .meta-item { padding: 13px 15px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; background: rgba(5,20,33,.17); }
+    .meta-label { display: block; color: #a9c7d8; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .meta-value { display: block; margin-top: 4px; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+
+    .topnav { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(12px); }
+    .nav-inner { width: min(1180px, 100%); margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 20px; overflow-x: auto; }
+    .brand { color: var(--navy); font-weight: 900; white-space: nowrap; margin-right: auto; }
+    .nav-inner a { padding: 15px 0 13px; color: #4d5a68; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .nav-inner a:hover { color: var(--blue); border-color: var(--blue); }
+    .print-btn { border: 0; border-radius: 8px; padding: 8px 11px; color: #fff; background: var(--navy); cursor: pointer; white-space: nowrap; font-weight: 700; }
+
+    main { padding: 42px 22px 80px; }
+    section { scroll-margin-top: 74px; margin-bottom: 58px; }
+    .section-kicker { color: var(--blue); font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    h2 { margin: 5px 0 12px; color: var(--navy); font-size: clamp(27px, 3vw, 38px); line-height: 1.2; letter-spacing: -.025em; }
+    h3 { margin: 25px 0 10px; color: var(--navy); font-size: 20px; }
+    .section-intro { max-width: 900px; margin: 0 0 24px; color: var(--muted); font-size: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      padding: 29px;
+      border-left: 6px solid var(--cyan);
+    }
+    .verdict h3 { margin-top: 0; font-size: 24px; }
+    .verdict p { margin: 8px 0; }
+    .candidate-stack { padding: 20px; border-radius: 14px; color: #e9f5fa; background: linear-gradient(145deg, #183d5e, #1e6674); }
+    .candidate-stack .arrow { color: #8bd5df; text-align: center; font-weight: 900; }
+    .candidate-stack .layer { padding: 9px 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: rgba(255,255,255,.08); font-weight: 750; text-align: center; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; margin: 20px 0 26px; }
+    .metric { padding: 20px; border-top: 4px solid var(--blue); }
+    .metric:nth-child(2) { border-color: var(--cyan); }
+    .metric:nth-child(3) { border-color: var(--green); }
+    .metric:nth-child(4) { border-color: var(--amber); }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { display: block; margin-top: 5px; color: var(--navy); font-size: clamp(25px, 3vw, 35px); font-weight: 900; letter-spacing: -.035em; }
+    .metric-note { margin-top: 5px; color: var(--muted); font-size: 13px; }
+
+    .flow { display: grid; gap: 12px; }
+    .flow-row { display: grid; grid-template-columns: 155px 28px 1fr; align-items: stretch; }
+    .flow-phase { display: grid; place-items: center; padding: 13px; border-radius: 12px; color: #fff; background: var(--navy); font-size: 13px; font-weight: 850; text-align: center; }
+    .flow-arrow { display: grid; place-items: center; color: var(--blue); font-weight: 900; }
+    .flow-content { padding: 15px 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .flow-content strong { color: var(--navy); }
+    .branch-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+    .branch { padding: 18px; }
+    .branch h3 { margin: 0 0 8px; font-size: 17px; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { padding: 12px 13px; color: #fff; background: var(--navy); text-align: left; white-space: nowrap; }
+    td { padding: 12px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) { background: #f8fafb; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .badge { display: inline-block; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .diagnosis { color: var(--violet); background: var(--violet-soft); }
+    .reject { color: var(--red); background: var(--red-soft); }
+    .signal { color: var(--amber); background: var(--amber-soft); }
+    .candidate { color: var(--green); background: var(--green-soft); }
+
+    details { border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; }
+    details + details { margin-top: 10px; }
+    summary { display: flex; align-items: center; gap: 10px; padding: 16px 18px; cursor: pointer; font-weight: 850; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; margin-left: auto; color: var(--blue); font-size: 20px; }
+    details[open] summary::after { content: "−"; }
+    .detail-body { padding: 0 18px 18px; color: #354353; }
+    .detail-links { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .detail-links a { padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; text-decoration: none; }
+
+    .bar-panel { padding: 22px; }
+    .bar-row { display: grid; grid-template-columns: 180px 1fr 100px; gap: 12px; align-items: center; margin: 13px 0; }
+    .bar-label { font-size: 13px; font-weight: 760; }
+    .bar-track { height: 17px; border-radius: 999px; background: #e8edf1; overflow: hidden; }
+    .bar-fill { height: 100%; min-width: 2px; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+    .bar-value { text-align: right; font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .bar-cost .bar-fill { background: linear-gradient(90deg, var(--amber), #d99b31); }
+    .bar-cost.best .bar-fill { background: linear-gradient(90deg, var(--green), #45a67e); }
+
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+    .note { padding: 21px; }
+    .note h3 { margin-top: 0; }
+    .callout { margin: 18px 0; padding: 15px 17px; border-radius: 12px; border-left: 4px solid var(--amber); color: #624410; background: var(--amber-soft); }
+    .callout.red { border-color: var(--red); color: #6f2f2f; background: var(--red-soft); }
+
+    .priority-list { counter-reset: priority; display: grid; gap: 12px; padding: 0; list-style: none; }
+    .priority-list li { position: relative; padding: 18px 18px 18px 66px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .priority-list li::before { counter-increment: priority; content: "P" counter(priority); position: absolute; left: 18px; top: 18px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #fff; background: var(--navy); font-size: 12px; font-weight: 900; }
+    .priority-list strong { color: var(--navy); }
+
+    footer { padding: 30px 22px 42px; color: #cbd8e1; background: #10283e; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 18px; font-size: 12px; }
+
+    @media (max-width: 820px) {
+      .meta-grid, .metric-grid, .branch-grid, .two-col { grid-template-columns: 1fr 1fr; }
+      .verdict { grid-template-columns: 1fr; }
+      .flow-row { grid-template-columns: 115px 20px 1fr; }
+      .bar-row { grid-template-columns: 135px 1fr 80px; }
+    }
+    @media (max-width: 560px) {
+      .hero { padding-top: 48px; }
+      .meta-grid, .metric-grid, .branch-grid, .two-col { grid-template-columns: 1fr; }
+      .flow-row { grid-template-columns: 1fr; }
+      .flow-arrow { min-height: 24px; transform: rotate(90deg); }
+      .bar-row { grid-template-columns: 1fr 72px; }
+      .bar-track { grid-column: 1 / -1; grid-row: 2; }
+      .footer-inner { flex-direction: column; }
+    }
+    @media print {
+      body { background: #fff; font-size: 10.5pt; }
+      .hero { padding: 28px; }
+      .topnav, .print-btn { display: none; }
+      main { padding: 24px 0; }
+      section { break-inside: avoid; margin-bottom: 30px; }
+      .card, details { box-shadow: none; }
+      details > .detail-body { display: block !important; }
+      summary::after { display: none; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">AOI · Sandbox Research Log</span>
+      <h1>혼합 Drift 진단에서<br>비용 기반 운영 후보까지</h1>
+      <p class="hero-lead">오늘 <code>dev</code>에서 분기한 sandbox 브랜치의 9개 실험을 하나의 흐름으로 정리한 보고서입니다. 무엇이 개선됐고, 무엇이 기각됐으며, 다음 모델이 어떤 모습이어야 하는지를 숫자와 함께 기록합니다.</p>
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Author</span><span class="meta-value">kimjaehak</span></div>
+        <div class="meta-item"><span class="meta-label">Generated</span><span class="meta-value">2026-08-25 06:07 KST</span></div>
+        <div class="meta-item"><span class="meta-label">Branch</span><span class="meta-value">sandbox/kimjaehak/multi-experiments</span></div>
+        <div class="meta-item"><span class="meta-label">Range</span><span class="meta-value">dev 00b51cd → HEAD c3f17e7</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="topnav" aria-label="보고서 목차">
+    <div class="nav-inner">
+      <span class="brand">KJH / AOI</span>
+      <a href="#summary">요약</a>
+      <a href="#flow">실험 흐름</a>
+      <a href="#experiments">전체 실험</a>
+      <a href="#performance">성능 개선</a>
+      <a href="#direction">모델 방향</a>
+      <a href="#gaps">한계·다음 실험</a>
+      <button class="print-btn" onclick="window.print()">인쇄 / PDF</button>
+    </div>
+  </nav>
+
+  <main>
+    <section id="summary">
+      <span class="section-kicker">Executive summary</span>
+      <h2>현재까지의 결론</h2>
+      <p class="section-intro">문제는 단순 라벨 drift가 아니라 입력 피처와 판정 기준 변화가 함께 존재하는 혼합 drift에 가깝습니다. 고정 모델의 threshold만 조절하는 접근보다, 검사유형별 모델을 최근 데이터로 누적 재학습하고 비용 의사결정을 별도 계층으로 분리하는 방향이 가장 설득력 있습니다.</p>
+
+      <div class="metric-grid">
+        <article class="metric card">
+          <span class="metric-label">Pooled PR-AUC</span>
+          <span class="metric-value">0.298 → 0.345</span>
+          <div class="metric-note">Fixed 대비 Expanding +15.6% · 동일 W08~W10</div>
+        </article>
+        <article class="metric card">
+          <span class="metric-label">Type-weighted PR-AUC</span>
+          <span class="metric-value">0.405 → 0.472</span>
+          <div class="metric-note">비용·threshold 없이 +16.8%</div>
+        </article>
+        <article class="metric card">
+          <span class="metric-label">Cost · 1:100</span>
+          <span class="metric-value">−59.34%</span>
+          <div class="metric-note">Expanding raw 0.5 대비 empirical threshold</div>
+        </article>
+        <article class="metric card">
+          <span class="metric-label">남은 미검출</span>
+          <span class="metric-value">FN 530</span>
+          <div class="metric-note">Recall 79.43% · 비용 최적화는 안전 보장이 아님</div>
+        </article>
+      </div>
+
+      <article class="verdict card">
+        <div>
+          <h3>한 문장 결론</h3>
+          <p><strong>현재 champion 후보는 “inspection type별 XGBoost 5개 + Expanding 재학습”이며, 비용 정책은 모델과 분리해 직전 구간에서 갱신하는 구조가 적절합니다.</strong></p>
+          <p>다만 실제 FP·FN 비용이 정해지지 않았고, 3개 후반 window를 이미 반복 분석했으므로 아직 최종 운영 모델이라고 부를 수 없습니다. 다음 단계는 정책 하나를 사전에 고정한 뒤 새로운 미래 데이터로 확인하는 것입니다.</p>
+        </div>
+        <div class="candidate-stack" aria-label="권장 모델 구조">
+          <div class="layer">중복 제거 + mapping 유효 피처</div>
+          <div class="arrow">↓</div>
+          <div class="layer">inspection type별 XGBoost × 5</div>
+          <div class="arrow">↓</div>
+          <div class="layer">Expanding 누적 재학습</div>
+          <div class="arrow">↓</div>
+          <div class="layer">type별 비용 threshold + 희소 type fallback</div>
+        </div>
+      </article>
+    </section>
+
+    <section id="flow">
+      <span class="section-kicker">Research trajectory</span>
+      <h2>실험이 이어진 방향</h2>
+      <p class="section-intro">출발점은 <code>kimjaehak_006</code>의 mapping 기반 type-conditioned baseline입니다. 오늘 실험은 drift의 정체를 확인한 뒤, 의사결정 계층과 모델 계층을 차례로 분리해 검증하는 방향으로 진행됐습니다.</p>
+
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-phase">출발 기준</div><div class="flow-arrow">→</div>
+          <div class="flow-content"><strong>kimjaehak_006</strong> · 검사유형별 XGBoost 5개, Test pooled PR-AUC 0.315411. 오늘 실험에서 데이터 처리와 피처 구조의 기준으로 유지.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-phase">원인 진단</div><div class="flow-arrow">→</div>
+          <div class="flow-content"><strong>kimjaehak_007</strong> · 라벨률 증가는 type 구성만으로 설명되지 않았고, 0→1 라벨 비대칭과 큰 피처 PSI가 동시에 관찰됨. 결론: 순수 label drift가 아닌 <strong>혼합 drift</strong>.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-phase">의사결정 실험</div><div class="flow-arrow">→</div>
+          <div class="flow-content"><strong>kimjaehak_008 → 010</strong> · 직전 구간 safety threshold와 Platt calibration을 검증. 미검출 또는 비용은 개선했지만 다음 기간 안정성이 부족해 고정 모델의 한계를 확인.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-phase">모델 적응</div><div class="flow-arrow">→</div>
+          <div class="flow-content"><strong>kimjaehak_011 → 013</strong> · Fixed / Expanding / Rolling-6 비교 후 비용과 threshold를 제거해 재검증. Expanding의 순위 성능 개선이 모델 자체에서 발생함을 확인.</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-phase">운영 비용</div><div class="flow-arrow">→</div>
+          <div class="flow-content"><strong>kimjaehak_014</strong> · 비용 없이 선택한 Expanding 모델에만 비용 정책을 추가. 1:50~1:100 가정에서 다음 구간 비용 감소가 반복적으로 관찰됨.</div>
+        </div>
+      </div>
+
+      <div class="branch-grid">
+        <article class="branch card">
+          <span class="badge reject">고정 정책 기각</span>
+          <h3>008 · 010</h3>
+          <p>고정 모델에서 threshold 또는 calibration만 갱신하는 방식은 drift를 안정적으로 흡수하지 못했습니다.</p>
+        </article>
+        <article class="branch card">
+          <span class="badge reject">강건성 부족</span>
+          <h3>009 → 012</h3>
+          <p>Type 2의 1:4 undersampling은 같은 split에서는 강했지만 시간 Fold 승률 51.7%로 고정 정책 근거가 부족했습니다.</p>
+        </article>
+        <article class="branch card">
+          <span class="badge signal">부분 신호</span>
+          <h3>016 · 피처 축소</h3>
+          <p>전체 25% 축소 목표는 실패했습니다. 다만 Type 2의 meta 제외 효과는 별도 미래 검증 가치가 있습니다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="experiments">
+      <span class="section-kicker">Complete experiment inventory</span>
+      <h2>Sandbox의 모든 실험과 결과</h2>
+      <p class="section-intro">아래 9개 실험은 <code>dev 00b51cd</code> 이후 현재 브랜치에서 추가됐습니다. “채택”은 최종 운영 확정이 아니라 다음 검증에 남길 후보라는 의미입니다.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>실험</th><th>질문</th><th>핵심 결과</th><th>판정</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>kimjaehak_007</strong><br><small>label shift diagnosis</small></td>
+              <td>후반 class=1 증가는 무엇 때문인가?</td>
+              <td>W01 0.186% → W10 3.337%. Type 구성 효과 −0.271%p, 유형 내부 효과 +3.421%p. 동일 signature 최초 라벨 0→1 57개 vs 1→0 13개. PSI 0.25 이상 162/452.</td>
+              <td><span class="badge diagnosis">혼합 drift 진단</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_008</strong><br><small>walk-forward threshold</small></td>
+              <td>직전 구간 safety threshold가 다음 구간에도 안전한가?</td>
+              <td>Slip Rate 66.27% → 2.64%로 크게 감소했지만 False Call Reduction 98.92% → 11.69%. 1% 목표는 W08만 만족하고 W09·W10 실패.</td>
+              <td><span class="badge reject">운영안 기각</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_009</strong><br><small>partial rebalancing</small></td>
+              <td>1:1보다 약한 부분 리샘플링이 나은가?</td>
+              <td>Type 2만 1:4 undersampling 선택. Type 2 Test PR-AUC 0.3568 → 0.5616, pooled 0.3154 → 0.3833. 단, Validation seed 표준편차 0.1106.</td>
+              <td><span class="badge signal">유망 신호</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_010</strong><br><small>probability calibration</small></td>
+              <td>Platt calibration이 비용 판정을 안정화하는가?</td>
+              <td>1:100 비용 98,508 → 88,644로 약 10% 감소. Log loss는 개선됐지만 Brier는 악화했고 구간별 calibration 방향이 불안정. Slip Rate 25.54%.</td>
+              <td><span class="badge signal">비용 신호, 미채택</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_011</strong><br><small>walk-forward retraining</small></td>
+              <td>고정 모델 대신 재학습하면 drift 대응이 나아지는가?</td>
+              <td>Expanding PR-AUC 0.3445 vs Fixed 0.2981, 비용 101,359 vs 108,366. 그러나 safety threshold에서 Slip Rate 2.95%이고 W09·W10 효과 방향이 다름.</td>
+              <td><span class="badge candidate">Expanding 후보</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_012</strong><br><small>undersampling robustness</small></td>
+              <td>009의 Type 2 결과가 seed·기간에 강건한가?</td>
+              <td>동일 split은 Test seed 승률 100%로 재현. 하지만 6개 시간 Fold 중 개선 3개, 전체 승률 51.7%. 후반 W09·W10에서 baseline 열세.</td>
+              <td><span class="badge reject">고정 정책 기각</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_013</strong><br><small>cost-free model performance</small></td>
+              <td>Expanding 개선은 threshold가 아닌 모델 자체 효과인가?</td>
+              <td>Positive-weighted type PR-AUC 0.4045 → 0.4725. Aggregate pooled PR-AUC 0.2981 → 0.3445. Brier 0.02056 → 0.01869, log loss 0.10690 → 0.10055.</td>
+              <td><span class="badge candidate">모델 후보 채택</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_014</strong><br><small>cost-optimized policy</small></td>
+              <td>선택된 Expanding에 비용 정책을 얹으면 이득인가?</td>
+              <td>1:100 empirical 정책 비용 69,627. Expanding raw 0.5 대비 −59.34%, 동일 Fixed 정책 대비 −24.1%. Recall 79.43%, FCR 85.54%, FN 530.</td>
+              <td><span class="badge candidate">비용 후보</span></td>
+            </tr>
+            <tr>
+              <td><strong>kimjaehak_016</strong><br><small>stable feature selection</small></td>
+              <td>시간 안정적 저기여 피처를 제거할 수 있는가?</td>
+              <td>피처 267 → 247, 감소율 7.5%로 목표 25% 미달. Pooled PR-AUC +0.0238지만 Recall 31.61% → 27.70%, FN +88. Type 2 no-meta PR-AUC +0.2608은 별도 신호.</td>
+              <td><span class="badge reject">전역 축소 기각</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>실험별 상세 메모와 원문</h3>
+      <details>
+        <summary><span class="badge diagnosis">007</span> 혼합 drift 진단</summary>
+        <div class="detail-body">라벨 기준이 후반에 엄격해졌다는 정황은 지지되지만, 피처 분포도 크게 변했습니다. 작업자 ID·공정 변경 이력이 없으므로 실제 공정 불량 증가와 판정 기준 변화를 인과적으로 분리할 수는 없습니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_007_label_shift_diagnosis.md">보고서</a><a href="../../notebooks/0825_kimjaehak_007_label_shift_diagnosis.ipynb">노트북</a></div>
+        </div>
+      </details>
+      <details>
+        <summary><span class="badge reject">008</span> Slip Rate threshold의 시간 전이 실패</summary>
+        <div class="detail-body">직전 기간에서 1%를 맞춘 threshold도 다음 기간에서는 같은 의미를 유지하지 못했습니다. 안전성을 높이기 위해 재검사 절감 대부분을 포기했는데도 목표가 보장되지 않았습니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_008_walk_forward_threshold.md">보고서</a><a href="../../notebooks/0825_kimjaehak_008_walk_forward_threshold.ipynb">노트북</a></div>
+        </div>
+      </details>
+      <details>
+        <summary><span class="badge signal">009 → 012</span> 부분 리샘플링과 강건성 검증</summary>
+        <div class="detail-body">009의 단일 split에서는 Type 2 성능이 크게 올랐지만, 012의 시간 Fold에서는 개선과 악화가 반반이었습니다. “결과가 틀렸다”가 아니라 “고정 운영 정책으로 일반화할 증거가 부족하다”는 결론입니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_009_partial_rebalancing.md">009 보고서</a><a href="../../notebooks/0825_kimjaehak_009_partial_rebalancing.ipynb">009 노트북</a><a href="../experiments/0825_kimjaehak_012_type2_undersampling_robustness.md">012 보고서</a><a href="../../notebooks/0825_kimjaehak_012_type2_undersampling_robustness.ipynb">012 노트북</a></div>
+        </div>
+      </details>
+      <details>
+        <summary><span class="badge signal">010</span> 확률 calibration</summary>
+        <div class="detail-body">같은 수치 threshold에서 calibration이 비용을 줄였지만, 이것만으로 raw score에서 경험적으로 최적화한 threshold보다 우월하다고 말할 수는 없습니다. 시간별 Brier 방향도 일관되지 않았습니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_010_type_probability_calibration.md">보고서</a><a href="../../notebooks/0825_kimjaehak_010_type_probability_calibration.ipynb">노트북</a></div>
+        </div>
+      </details>
+      <details>
+        <summary><span class="badge candidate">011 → 013 → 014</span> Expanding 모델과 비용 계층 분리</summary>
+        <div class="detail-body">011에서 확인한 Expanding의 가능성을 013에서 비용 없이 재검증한 뒤, 014에서 비용 threshold만 별도로 얹었습니다. 현재 최종 방향을 만드는 핵심 실험 흐름입니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_011_walk_forward_retraining.md">011 보고서</a><a href="../experiments/0825_kimjaehak_013_cost_free_model_performance.md">013 보고서</a><a href="../experiments/0825_kimjaehak_014_cost_optimized_policy.md">014 보고서</a><a href="../../notebooks/0825_kimjaehak_014_cost_optimized_policy.ipynb">014 노트북</a></div>
+        </div>
+      </details>
+      <details>
+        <summary><span class="badge reject">016</span> 보수적 feature selection</summary>
+        <div class="detail-body">전역 축소 목표는 달성하지 못했고 Type 0은 미래 성능이 악화했습니다. Type 2 no-meta는 흥미롭지만 이미 Test를 본 결과라 새 시간 구간에서 독립적으로 확인해야 합니다.
+          <div class="detail-links"><a href="../experiments/0825_kimjaehak_016_stable_feature_selection.md">보고서</a><a href="../../notebooks/0825_kimjaehak_016_stable_feature_selection.ipynb">노트북</a></div>
+        </div>
+      </details>
+    </section>
+
+    <section id="performance">
+      <span class="section-kicker">Measured improvement</span>
+      <h2>실제로 무엇이 얼마나 좋아졌나</h2>
+      <p class="section-intro">비교 가능한 조건을 맞추기 위해 모델 순위는 W08~W10의 Fixed와 Expanding을 비교하고, 비용은 1:100에서 같은 Expanding 예측에 판정 정책을 바꾼 결과를 비교합니다.</p>
+
+      <div class="two-col">
+        <article class="bar-panel card">
+          <h3>모델 순위 성능</h3>
+          <div class="bar-row">
+            <div class="bar-label">Fixed pooled PR-AUC</div>
+            <div class="bar-track"><div class="bar-fill" style="width:59.3%"></div></div>
+            <div class="bar-value">0.2981</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Expanding pooled PR-AUC</div>
+            <div class="bar-track"><div class="bar-fill" style="width:68.9%"></div></div>
+            <div class="bar-value">0.3445</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Fixed type-weighted</div>
+            <div class="bar-track"><div class="bar-fill" style="width:80.9%"></div></div>
+            <div class="bar-value">0.4045</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Expanding type-weighted</div>
+            <div class="bar-track"><div class="bar-fill" style="width:94.5%"></div></div>
+            <div class="bar-value">0.4725</div>
+          </div>
+          <p><strong>해석:</strong> threshold를 전혀 사용하지 않아도 최근 데이터를 누적한 모델이 불량을 위쪽에 더 잘 정렬했습니다.</p>
+        </article>
+
+        <article class="bar-panel card">
+          <h3>총비용 · FP:FN = 1:100</h3>
+          <div class="bar-row bar-cost">
+            <div class="bar-label">Expanding raw 0.5</div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+            <div class="bar-value">171,225</div>
+          </div>
+          <div class="bar-row bar-cost">
+            <div class="bar-label">전량 재검사</div>
+            <div class="bar-track"><div class="bar-fill" style="width:67.2%"></div></div>
+            <div class="bar-value">115,014</div>
+          </div>
+          <div class="bar-row bar-cost">
+            <div class="bar-label">Fixed empirical</div>
+            <div class="bar-track"><div class="bar-fill" style="width:53.6%"></div></div>
+            <div class="bar-value">91,747</div>
+          </div>
+          <div class="bar-row bar-cost best">
+            <div class="bar-label">Expanding empirical</div>
+            <div class="bar-track"><div class="bar-fill" style="width:40.7%"></div></div>
+            <div class="bar-value">69,627</div>
+          </div>
+          <p><strong>해석:</strong> 모델 개선과 threshold 개선이 모두 비용 감소에 기여했습니다. 같은 empirical 정책에서 Expanding은 Fixed보다 24.1% 낮았습니다.</p>
+        </article>
+      </div>
+
+      <div class="callout"><strong>주의:</strong> PR-AUC 0.315411은 기존 W09~W10 Test, 0.298083과 0.344535는 W08~W10 walk-forward 평가입니다. 기간이 다른 숫자는 조건 확인 없이 직접 비교하지 않았습니다. 또한 type별 모델의 pooled PR-AUC는 type 간 raw score 스케일의 영향을 받으므로 type별 지표를 함께 봐야 합니다.</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>비용비율</th><th>Expanding의 관측상 최저 정책</th><th class="num">총비용</th><th class="num">Raw 0.5 대비</th><th class="num">구간 승리</th><th>해석</th></tr></thead>
+          <tbody>
+            <tr><td>1:10</td><td>Platt analytic</td><td class="num">17,729</td><td class="num">−1.26%</td><td class="num">1/3</td><td>이득이 작고 불안정</td></tr>
+            <tr><td>1:25</td><td>Raw empirical</td><td class="num">29,097</td><td class="num">−33.11%</td><td class="num">2/3</td><td>가능성 있으나 한 구간 실패</td></tr>
+            <tr><td>1:50</td><td>Raw empirical</td><td class="num">46,200</td><td class="num">−46.33%</td><td class="num">3/3</td><td>가장 안정적인 범위 후보</td></tr>
+            <tr><td>1:100</td><td>Raw empirical</td><td class="num">69,627</td><td class="num">−59.34%</td><td class="num">3/3</td><td>강한 비용 개선, FN 530</td></tr>
+            <tr><td>1:200</td><td>Platt analytic</td><td class="num">108,172</td><td class="num">−68.33%</td><td class="num">3/3</td><td>전량 재검사 대비 구간 승리는 1/3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="direction">
+      <span class="section-kicker">Recommended system direction</span>
+      <h2>어느 방향으로 모델을 만들어야 하나</h2>
+      <p class="section-intro">지금까지의 결과는 “한 번 학습한 모델 + 고정 threshold”보다 모델 적응과 의사결정을 분리한 구조를 지지합니다.</p>
+
+      <div class="two-col">
+        <article class="note card">
+          <h3>남겨야 할 것</h3>
+          <ul>
+            <li><strong>검사유형별 모델 5개:</strong> mapping에 맞는 서로 다른 피처 공간과 점수 스케일을 인정합니다.</li>
+            <li><strong>Expanding 재학습:</strong> 최근 데이터를 누적해 혼합 drift에 적응합니다.</li>
+            <li><strong>비용과 모델의 분리:</strong> PR-AUC로 모델을 선택한 후 별도 threshold 계층에서 비용을 반영합니다.</li>
+            <li><strong>희소 type fallback:</strong> 양성·음성이 부족하면 과도한 자동화를 피하고 수동 재검사를 유지합니다.</li>
+            <li><strong>시간 단위 모니터링:</strong> type별 PR-AUC, 양성률, score 분포, FN, 비용을 함께 봅니다.</li>
+          </ul>
+        </article>
+        <article class="note card">
+          <h3>현재는 버릴 것</h3>
+          <ul>
+            <li><strong>직전 Slip 1% point threshold:</strong> 다음 기간에 1%가 전이되지 않았습니다.</li>
+            <li><strong>모든 type 동일 리샘플링:</strong> 효과가 type과 시간에 따라 달랐습니다.</li>
+            <li><strong>Type 2 1:4 undersampling 고정 적용:</strong> 시간 Fold 승률이 51.7%였습니다.</li>
+            <li><strong>공격적 전역 피처 축소:</strong> 약한 피처 조합 손실과 FN 증가 위험이 확인됐습니다.</li>
+            <li><strong>Platt calibration 일괄 채택:</strong> 비용 신호는 있었지만 Brier와 기간 안정성이 일관되지 않았습니다.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout red"><strong>운영 관점의 핵심:</strong> 1:100 비용 최적 정책은 Recall 79.43%로 좋아졌지만 실제 불량 530건을 놓쳤습니다. 비용 최소화와 안전 제약은 같은 목표가 아닙니다. 현장이 허용하는 FN 상한이 있다면 비용식에 묻어두지 말고 별도의 하드 제약으로 둬야 합니다.</div>
+    </section>
+
+    <section id="gaps">
+      <span class="section-kicker">Remaining gaps</span>
+      <h2>부족한 점과 필요한 후속 실험</h2>
+      <p class="section-intro">현재 데이터에서 유망한 방향은 찾았지만, 정책 확정에 필요한 독립성·비용 정의·희소 표본 불확실성이 남아 있습니다.</p>
+
+      <ol class="priority-list">
+        <li><strong>실제 비용과 안전 제약을 먼저 정의.</strong> FP 1건과 FN 1건의 상대 비용 범위, 그리고 비용과 무관하게 허용할 수 있는 FN 또는 Slip Rate 상한을 현장과 합의해야 합니다.</li>
+        <li><strong>정책 하나를 사전에 고정한 미래 검증.</strong> 예: Expanding + type별 raw empirical threshold + 희소 type fallback. 비용비율과 fallback 규칙을 결과를 보기 전에 고정하고 새로운 시간 구간에 한 번 적용해야 합니다.</li>
+        <li><strong>시간 Fold 수 확대와 불확실성 표시.</strong> 현재 핵심 평가는 W08~W10 세 구간입니다. 기간별 비용·Recall의 신뢰구간이나 block bootstrap을 함께 보고 평균 한 값에 의존하지 않아야 합니다.</li>
+        <li><strong>희소 type용 위험 제어.</strong> Type 4처럼 양성 또는 음성이 거의 없는 구간은 점추정 threshold 대신 upper confidence bound, conformal risk control, 또는 전량 재검사 fallback을 비교해야 합니다.</li>
+        <li><strong>Type 2 가설을 새 Fold에서 분리 검증.</strong> 1:4 undersampling은 고정 적용하지 않습니다. 대신 no-meta가 shortcut·drift 신호를 제거하는지 진단하고, undersampling과 섞지 않은 상태로 미래 Fold에서 확인합니다.</li>
+        <li><strong>재학습 주기와 데이터 보존 범위 결정.</strong> Expanding이 Rolling-6보다 좋았지만 오래된 데이터가 언제 독이 되는지는 아직 모릅니다. 월별/주별 재학습 주기와 최대 학습 기간을 별도 비교해야 합니다.</li>
+        <li><strong>라벨 원인 데이터를 확보.</strong> 작업자 ID, AOI 프로그램·공정 변경 시점, 재검수 ground truth가 있어야 라벨 기준 변화와 실제 불량 증가를 구분할 수 있습니다.</li>
+      </ol>
+
+      <article class="verdict card" style="margin-top:22px">
+        <div>
+          <h3>가장 가치 있는 다음 실험</h3>
+          <p><strong>“Frozen cost policy future validation”</strong>이 우선입니다. Expanding 모델과 하나의 비용 정책을 완전히 고정하고, 아직 보지 않은 다음 기간에서 비용·FN·FCR을 평가합니다.</p>
+          <p>새 데이터가 아직 없다면 현재 자료로 정책을 더 고르는 대신, 실제 비용 정의와 데이터 수집 계획을 먼저 확정하는 편이 결과의 신뢰도를 더 높입니다.</p>
+        </div>
+        <div class="candidate-stack">
+          <div class="layer">비용비율 + FN 상한 합의</div>
+          <div class="arrow">↓</div>
+          <div class="layer">모델·threshold·fallback 동결</div>
+          <div class="arrow">↓</div>
+          <div class="layer">새 미래 window 1회 평가</div>
+          <div class="arrow">↓</div>
+          <div class="layer">채택 / 수정 / 중단 결정</div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Generated for kimjaehak · 2026-08-25 06:07 KST</span>
+      <span class="mono">sandbox/kimjaehak/multi-experiments · c3f17e7</span>
+    </div>
+  </footer>
+</body>
+</html>

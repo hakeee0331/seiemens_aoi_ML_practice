@@ -14,6 +14,15 @@
 | `0824_peace_001_eda` | 완료 | peace | Siemens AOI 데이터 EDA와 시간 드리프트 점검 | 해당 없음 | 실제 불량 1.05%, Test 불량률은 Train의 약 5.2배 |
 | `0824_kimjaehak_005_xgboost_baseline` | 완료 | kimjaehak | 시간순 분할 기반 XGBoost 단순 베이스라인 | XGBoost | Test F1 0.3066, Recall 0.2623, PR-AUC 0.2368 |
 | `0824_kimjaehak_006_type_conditioned_baseline` | 완료 | kimjaehak | mapping 기반 검사유형별 XGBoost 베이스라인 | Type-conditioned XGBoost | Test F1 0.3632, Recall 0.3161, PR-AUC 0.3154 |
+| `0825_kimjaehak_007_label_shift_diagnosis` | 완료 | kimjaehak | 후반부 class=1 증가의 구성·라벨·피처 drift 원인 분해 | Type-conditioned XGBoost (진단) | lsw_005의 라벨 기준 변화 정황은 지지하나, PSI 0.25 이상 162건과 모델 점수 동반 상승으로 혼합 drift 확인 |
+| `0825_kimjaehak_008_walk_forward_threshold` | 완료 | kimjaehak | 고정 type별 모델에 직전 구간 threshold를 적용하는 walk-forward 검증 | Type-conditioned XGBoost (고정) | W08만 Slip Rate 1% 충족, W09 2.23%·W10 3.44%; 전체 False Call Reduction 11.69%로 운영안 미채택 |
+| `0825_kimjaehak_009_partial_rebalancing` | 완료 | kimjaehak | 검사유형별 부분 리샘플링 비율과 sampler seed 안정성 비교 | Type-conditioned XGBoost + partial resampling | Type 2만 1:4 undersampling 선택; Test PR-AUC 0.357→0.562이나 시간 강건성 추가 검증 필요 |
+| `0825_kimjaehak_010_type_probability_calibration` | 완료 | kimjaehak | 직전 구간 type별 확률 보정과 고정 비용 threshold walk-forward 검증 | Type-conditioned XGBoost + Platt calibration | 비용은 raw 비용정책 대비 10.0% 감소했으나 Slip Rate 25.54%, Brier 악화로 안전 정책 미채택 |
+| `0825_kimjaehak_011_walk_forward_retraining` | 완료 | kimjaehak | fixed·expanding·rolling-6 재학습의 walk-forward 비교 | Type-conditioned XGBoost (재학습) | Expanding PR-AUC 0.345·절감 18.48%로 개선했으나 Slip Rate 2.95%로 안전 목표 미달 |
+| `0825_kimjaehak_012_type2_undersampling_robustness` | 완료 | kimjaehak | Type 2의 1:4 undersampling seed 재현성과 기간 강건성 검증 | Type-conditioned XGBoost + Random Undersampling | 동일 split은 강한 재현이나 walk-forward 승률 51.7%·개선 Fold 3/6으로 고정 정책 근거 부족 |
+| `0825_kimjaehak_013_cost_free_model_performance` | 완료 | kimjaehak | 비용·threshold를 제외한 fixed·expanding·rolling-6 순수 모델 성능 비교 | Type-conditioned XGBoost (재학습) | Expanding의 positive-weighted type PR-AUC 0.472로 Fixed 0.405보다 높고 W09·W10 모두 개선 |
+| `0825_kimjaehak_014_cost_optimized_policy` | 완료 | kimjaehak | 비용 없는 모델 선택 후 직전 구간 비용 threshold의 walk-forward 민감도 검증 | Type-conditioned XGBoost + cost policy | 1:100에서 Expanding empirical 정책 비용 69,627, raw 0.5 대비 59.34%·동일 Fixed 정책 대비 24.1% 감소 |
+| `0825_kimjaehak_016_stable_feature_selection` | 완료 | kimjaehak | Train 내부 시간 importance 기반 검사유형별 보수적 feature selection | Type-conditioned XGBoost + stable feature selection | 피처 7.5% 감소에 그쳐 가설 기각; pooled PR-AUC 0.315→0.339, Type 2 no-meta는 별도 재검증 필요 |
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
 | `0824_lsw_004_imbalance_handling` | 완료 | lsw | 5분리 구조에서 불균형 처리 기법(class_weight/SMOTE/ADASYN/undersampling) 비교 | XGBoost (type×기법) | 유형마다 최적 기법이 다름 — type1/2는 class_weight로 Slip Rate 개선, type0/3/4는 어떤 기법도 목표(≤1%) 미달성 |
@@ -38,6 +47,14 @@
 | `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
 | `0824_dongjin_021_adasyn_time_decay` | 완료 | dongjin | Type-Cond 분리 + ADASYN + Time-Decay 가중치 | XGBoost (5 models) | Test PR-AUC 0.260, Recall 35.3% (Temporal Drift 억제 절반의 성공) |
 | `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
+| `0825_peace_003_type_expert_xgboost` | 완료 | peace | mapping 기반 검사유형별 XGBoost 전문가 모델과 임계값 전략 비교 | XGBoost (5 models) | Test 공통 임계값 Recall 89.8%/FCR 60.9%, 타입별 임계값 Recall 92.7%/FCR 46.7% |
+| `0825_peace_004_type_expert_walk_forward` | 완료 | peace | 타입별 XGBoost의 3-Fold expanding Walk-forward 임계값 안정성 검증 | XGBoost (5 models) | 미래 Fold 공통 임계값 평균 Recall 96.9%(2/3 Fold 99%), 타입별 평균 Recall 92.4%(1/3 Fold 99%) |
+| `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0% |
+| `0825_peace_006_type_expert_sequential_update` | 완료 | peace | 시간 배치별 XGBoost 순차 업데이트 학습·추론 | Sequential XGBoost (5 final models) | Test PR-AUC 0.278, 공통 임계값 Recall 94.5%/FCR 40.5% |
+| `0825_peace_007_type_expert_class_weight` | 완료 | peace | 타입·Fold별 클래스 불균형 가중치 실험 | XGBoost (5 models) | Test PR-AUC 0.319, 공통 임계값 Recall 98.5%/FCR 10.1% |
+| `0825_peace_008_type_expert_time_weight` | 완료 | peace | Train 시간순 1.0→2.0 선형 sample weight 실험 | XGBoost (5 models) | Test PR-AUC 0.372, 공통 임계값 Recall 90.8%/FCR 49.8% |
+| `0825_peace_009_type_expert_sqrt_class_weight` | 완료 | peace | 제곱근으로 약화한 타입·Fold별 클래스 가중치 | XGBoost (5 models) | Test PR-AUC 0.379, 공통 임계값 Recall 95.9%/FCR 21.1% |
+| `0825_peace_010_type_expert_sqrt_class_time_weight` | 완료 | peace | sqrt 클래스 가중치와 시간 1.0→2.0 가중치 결합 | XGBoost (5 models) | Test PR-AUC 0.385, 공통 임계값 Recall 96.0%/FCR 19.1% |
 
 
 ## 상태 값
