@@ -3,5 +3,6 @@ joblib
 matplotlib
 numpy
 pandas
+polars>=1.0
 scikit-learn
 seaborn
