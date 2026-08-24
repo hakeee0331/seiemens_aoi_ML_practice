@@ -41,7 +41,8 @@ jupyter lab
 3. 같은 stem으로 `docs/experiments/`에 설명 문서를 생성한다.
 4. 노트북을 처음부터 끝까지 실행한다.
 5. 실험 문서와 `docs/experiments/index.md`를 갱신한다.
-6. 필요한 경우 같은 stem으로 모델을 `models/`에 저장한다.
+6. 모델의 최종 Test 평가가 있으면 `docs/model_val.md`를 갱신한다.
+7. 필요한 경우 같은 stem으로 모델을 `models/`에 저장한다.
 
 세부 규칙은 `CONTRIBUTING.md`에서 확인한다.
 
@@ -72,6 +73,7 @@ siemens_aoi/
 ├── docs/
 │   ├── project_status.html
 │   ├── data_example.md
+│   ├── model_val.md
 │   └── experiments/
 │       ├── index.md
 │       └── 0823_example_001_baseline.md
