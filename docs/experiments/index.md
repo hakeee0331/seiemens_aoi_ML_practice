@@ -6,6 +6,7 @@
 |---|---|---|---|---|---|
 | `0823_example_001_baseline` | Example | example | 실험 작성 형식 예시 | Logistic Regression | 합성 데이터 실행 예시 |
 | `0823_lsw_001_eda` | 완료 | lsw | 원본 데이터 스키마/결측치/클래스 분포/상수열/중복행/시간 커버리지 탐색 | 해당 없음 | NaN 결측 0건, 무효 컬럼 채움값이 type마다 다름, 상수열·중복행 다수 발견 |
+| `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 
 ## 상태 값
 
