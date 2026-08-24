@@ -31,6 +31,7 @@
 | `0825_lsw_007_cleanlab_confident_learning` | 완료 | lsw | cleanlab confident learning으로 라벨 이슈 탐지, 004 "현재 최고 기법" 대비로 개선 여부 판단 | XGBoost + cleanlab (type×기법) | type3에서 cleanlab+smote가 두 비용비율 모두 기존 최고를 이김(1:10 43%↓) — 새 챔피언. type0/2는 표본부족/concept drift로 악화 |
 | `0825_lsw_008_adaptive_threshold` | 완료 | lsw | 모델 고정(재학습 없음) + 과거 확정 데이터로 임계값만 재조정 — frozen/adaptive_threshold/006 full retrain 3정책 비교 | XGBoost (고정 모델, type×step) | type0/1/3은 재학습(006)이 오히려 최악, frozen이 최선. type2의 "임계값 재조정 11%↓"는 006/008 슬라이딩 구조 한정 결과 — 표준 60:20:20 틀로 재검증하니 효과 소멸(-0.6%~+3.3%), type2는 undersample 유지 |
 | `0825_lsw_009_xgboost_hyperparameter_search` | 완료 | lsw | XGBoost 하이퍼파라미터(정규화 계열) 랜덤서치 20개 — baseline 및 현재 최고 기법 대비 개선 여부 확인 | XGBoost (type×hyperparameter) | baseline 데이터만으로도 전 유형·전 시나리오 개선(type2/3은 30~40%↓) — 프로젝트 전체 최대 단일 개선. 현재 최고 기법 위에 얹어도 type1(1:10)/2/3 추가 개선 |
+| `0825_lsw_010_unsupervised_anomaly_detection` | 완료 | lsw | Isolation Forest 단독 평가 + 이상점수를 XGBoost 피처로 결합(로드맵 Phase 4) | Isolation Forest + XGBoost (type별) | 단독은 dongjin 결과대로 약함(재확인). 결합(이상점수 추가 피처)도 전 유형·전 시나리오에서 악화 — 004/007/009의 현재 최고를 못 이김 |
 | `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
 | `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
 | `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
