@@ -36,5 +36,8 @@
 | [`0824_dongjin_012_smote`](experiments/0824_dongjin_sampling_methods.md) | XGBoost + SMOTE | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.394 | 0.500 | 47.8% | 1,076 | 1,173 | 98.0% | [notebook](../notebooks/0824_dongjin_012_smote.ipynb) |
 | [`0824_dongjin_013_adasyn`](experiments/0824_dongjin_sampling_methods.md) | XGBoost + ADASYN | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.456 | 0.500 | 49.2% | 1,108 | 1,141 | 98.2% | [notebook](../notebooks/0824_dongjin_013_adasyn.ipynb) |
 | [`0824_dongjin_015_isolation_forest`](experiments/0824_dongjin_015_isolation_forest.md) | Isolation Forest | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.036 | N/A | 0.0% | 0 | 2,249 | 100.0% | [notebook](../notebooks/0824_dongjin_015_isolation_forest.ipynb) |
+| [`0825_peace_003_type_expert_xgboost`](experiments/0825_peace_003_type_expert_xgboost.md) | Type-expert XGBoost baseline | 1970-10-13 16:54:52 ~ 1970-11-02 14:21:28 | 0.318 | 0.500 | 21.6% | 503 | 1,822 | 99.2% | [notebook](../notebooks/0825_peace_003_type_expert_xgboost.ipynb) |
+| [`0825_peace_003_type_expert_xgboost`](experiments/0825_peace_003_type_expert_xgboost.md) | Type-expert XGBoost, 공통 임계값 | 1970-10-13 16:54:52 ~ 1970-11-02 14:21:28 | 0.318 | 0.000770 | 89.8% | 2,088 | 237 | 60.9% | [notebook](../notebooks/0825_peace_003_type_expert_xgboost.ipynb) |
+| [`0825_peace_003_type_expert_xgboost`](experiments/0825_peace_003_type_expert_xgboost.md) | Type-expert XGBoost, 타입별 임계값 | 1970-10-13 16:54:52 ~ 1970-11-02 14:21:28 | 0.318 | 유형별 | 92.7% | 2,155 | 170 | 46.7% | [notebook](../notebooks/0825_peace_003_type_expert_xgboost.ipynb) |
 
 표에는 비교하기 쉬운 반올림 값을 표시한다. 정확한 계산값과 confusion matrix는 연결된 실험 문서와 노트북에 기록한다.

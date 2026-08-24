@@ -17,6 +17,7 @@
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
 | `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
+| `0825_peace_003_type_expert_xgboost` | 완료 | peace | mapping 기반 검사유형별 XGBoost 전문가 모델과 임계값 전략 비교 | XGBoost (5 models) | Test 공통 임계값 Recall 89.8%/FCR 60.9%, 타입별 임계값 Recall 92.7%/FCR 46.7% |
 
 ## 상태 값
 
