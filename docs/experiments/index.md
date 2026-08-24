@@ -5,6 +5,7 @@
 | 실험 ID | 상태 | 작성자 | 설명 | 모델 | 주요 결과 |
 |---|---|---|---|---|---|
 | `0823_example_001_baseline` | Example | example | 실험 작성 형식 예시 | Logistic Regression | 합성 데이터 실행 예시 |
+| `0824_peace_001_eda` | 완료 | peace | Siemens AOI 데이터 EDA와 시간 드리프트 점검 | 해당 없음 | 실제 불량 1.05%, Test 불량률은 Train의 약 5.2배 |
 
 ## 상태 값
 
