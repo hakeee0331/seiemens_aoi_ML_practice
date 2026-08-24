@@ -32,3 +32,16 @@
 - 주요 결과에는 핵심 지표나 한 줄 결론만 기록한다.
 - 상세 코드와 출력은 노트북에, 목적과 변경사항 및 결론은 개별 실험 문서에 기록한다.
 - 모델의 최종 Test 비교 결과는 `docs/model_val.md`에도 기록한다.
+| `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
+| `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
+| `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
+| `0824_dongjin_009_label_cleansing` | 완료 | dongjin | 라벨 클렌징 가설(EXP_03) 실험 | XGBoost (5 models) | 오탐(FP) 감소로 PR-AUC 상승(0.348) |
+| `0824_dongjin_010_spatial_correlation` | 완료 | dongjin | 공간 상관관계(EXP_05) 실험 | XGBoost (5 models) | Val 성능 폭등, Test 성능 급락 (심각한 Temporal Overfitting) |
+| `0824_dongjin_011_dynamic_tolerance` | 완료 | dongjin | 시계열 정규화(EXP_07) 실험 | XGBoost (5 models) | 성능 완전 붕괴 (Catastrophic Failure) |
+| `0824_dongjin_013_adasyn` 등 | 완료 | dongjin | SMOTE/ADASYN/RUS 샘플링 비교 | XGBoost (5 models) | ADASYN 압도적 성능 입증 (PR-AUC 0.456) |
+| `0824_dongjin_015_isolation_forest` | 완료 | dongjin | 비지도 학습(Hypothesis 4) 실험 | Isolation Forest (5 models) | Test PR-AUC 0.036 (비지도 학습의 한계 입증) |
+| `0824_dongjin_017_shap_analysis` | 완료 | dongjin | 챔피언 모델 SHAP 변수 중요도 분석 | SHAP + XGBoost | 장비별 불량 유발 핵심 피처 도출 및 XAI 확보 |
+| `0824_dongjin_016_ctgan` | 완료 | dongjin | CTGAN 기반 딥러닝 가상 불량 데이터 증식 | XGBoost + CTGAN | 참패 (오탐 8만건). 극소수 데이터로 인한 GAN 모드 붕괴 |
+| `0824_dongjin_018_rulefit` | 완료 | dongjin | RuleFit을 활용한 명시적 IF-THEN 규칙 도출 | XGBoost + RuleFit | 장비별 임계값(Threshold) 수치화 성공 |
+| `0824_dongjin_019_rule_injection` | 완료 | dongjin | RuleFit 룰셋을 Boolean 변수로 데이터 주입 | XGBoost + ADASYN + Rule | 정밀도(Precision) 최고치 48.5% 달성 (오탐지 253건 대폭 감소) |
+| `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
