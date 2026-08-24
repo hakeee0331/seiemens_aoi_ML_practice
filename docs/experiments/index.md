@@ -38,7 +38,9 @@
 | `0824_dongjin_009_label_cleansing` | 완료 | dongjin | 라벨 클렌징 가설(EXP_03) 실험 | XGBoost (5 models) | 오탐(FP) 감소로 PR-AUC 상승(0.348) |
 | `0824_dongjin_010_spatial_correlation` | 완료 | dongjin | 공간 상관관계(EXP_05) 실험 | XGBoost (5 models) | Val 성능 폭등, Test 성능 급락 (심각한 Temporal Overfitting) |
 | `0824_dongjin_011_dynamic_tolerance` | 완료 | dongjin | 시계열 정규화(EXP_07) 실험 | XGBoost (5 models) | 성능 완전 붕괴 (Catastrophic Failure) |
-| `0824_dongjin_013_adasyn` 등 | 완료 | dongjin | SMOTE/ADASYN/RUS 샘플링 비교 | XGBoost (5 models) | ADASYN 압도적 성능 입증 (PR-AUC 0.456) |
+| `0824_dongjin_012_smote` | 완료 | dongjin | 불균형 해소를 위한 SMOTE 오버샘플링 실험 | XGBoost (5 models) | PR-AUC 상승 (0.394) |
+| `0824_dongjin_013_adasyn` | 완료 | dongjin | 불균형 해소를 위한 ADASYN 오버샘플링 실험 | XGBoost (5 models) | ADASYN 압도적 성능 입증 (PR-AUC 0.456) |
+| `0824_dongjin_014_undersampling` | 완료 | dongjin | 무작위 언더샘플링 (Random Undersampling) 비교 | XGBoost (5 models) | 정상 데이터 유실로 가짜 불량 폭증 (성능 하락) |
 | `0824_dongjin_015_isolation_forest` | 완료 | dongjin | 비지도 학습(Hypothesis 4) 실험 | Isolation Forest (5 models) | Test PR-AUC 0.036 (비지도 학습의 한계 입증) |
 | `0824_dongjin_017_shap_analysis` | 완료 | dongjin | 챔피언 모델 SHAP 변수 중요도 분석 | SHAP + XGBoost | 장비별 불량 유발 핵심 피처 도출 및 XAI 확보 |
 | `0824_dongjin_016_ctgan` | 완료 | dongjin | CTGAN 기반 딥러닝 가상 불량 데이터 증식 | XGBoost + CTGAN | 참패 (오탐 8만건). 극소수 데이터로 인한 GAN 모드 붕괴 |
