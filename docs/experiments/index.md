@@ -21,6 +21,8 @@
 | `0825_peace_004_type_expert_walk_forward` | 완료 | peace | 타입별 XGBoost의 3-Fold expanding Walk-forward 임계값 안정성 검증 | XGBoost (5 models) | 미래 Fold 공통 임계값 평균 Recall 96.9%(2/3 Fold 99%), 타입별 평균 Recall 92.4%(1/3 Fold 99%) |
 | `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0% |
 | `0825_peace_006_type_expert_sequential_update` | 완료 | peace | 시간 배치별 XGBoost 순차 업데이트 학습·추론 | Sequential XGBoost (5 final models) | Test PR-AUC 0.278, 공통 임계값 Recall 94.5%/FCR 40.5% |
+| `0825_peace_007_type_expert_class_weight` | 완료 | peace | 타입·Fold별 클래스 불균형 가중치 실험 | XGBoost (5 models) | Test PR-AUC 0.319, 공통 임계값 Recall 98.5%/FCR 10.1% |
+| `0825_peace_008_type_expert_time_weight` | 완료 | peace | Train 시간순 1.0→2.0 선형 sample weight 실험 | XGBoost (5 models) | Test PR-AUC 0.372, 공통 임계값 Recall 90.8%/FCR 49.8% |
 
 ## 상태 값
 
