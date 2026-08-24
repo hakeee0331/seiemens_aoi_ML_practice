@@ -13,6 +13,7 @@
 
 - `docs/data_example.md`
 - `docs/experiments/index.md`
+- `docs/model_val.md`
 
 ## 에이전트 작업 원칙
 
