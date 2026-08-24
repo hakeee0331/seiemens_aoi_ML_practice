@@ -24,5 +24,7 @@
 | Experiment | Model | Test period (UTC) | PR-AUC | Threshold | Real Defect Recall | TP | FN | False Call Reduction | Notebook |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | [`0824_kimjaehak_005_xgboost_baseline`](experiments/0824_kimjaehak_005_xgboost_baseline.md) | XGBoost baseline | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.237 | 0.500 | 26.2% | 590 | 1,659 | 98.7% | [notebook](../notebooks/0824_kimjaehak_005_xgboost_baseline.ipynb) |
+| [`0824_lsw_003_structure_comparison`](experiments/0824_lsw_003_structure_comparison.md) | XGBoost 통합모델 (Slip Rate ≤1% 임계값) | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 0.237 | ~0.000 | 99.8% | 2,244 | 5 | 0.1% | [notebook](../notebooks/0824_lsw_003_structure_comparison.ipynb) |
+| [`0824_lsw_003_structure_comparison`](experiments/0824_lsw_003_structure_comparison.md) | XGBoost 5분리모델 (유형별 임계값, pooled) | 1970-10-13 13:14:58 ~ 1970-11-02 14:21:28 | 해당 없음(유형별 상이) | 유형별 상이 | 96.2% | 2,164 | 85 | 31.4% | [notebook](../notebooks/0824_lsw_003_structure_comparison.ipynb) |
 
 표에는 비교하기 쉬운 반올림 값을 표시한다. 정확한 계산값과 confusion matrix는 연결된 실험 문서와 노트북에 기록한다.
