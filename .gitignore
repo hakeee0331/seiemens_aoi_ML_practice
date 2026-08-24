@@ -40,6 +40,9 @@ wandb/
 .idea/
 .vscode/
 
+# Personal AI agent config (per-person, not shared)
+CLAUDE.md
+
 # Temporary files
 *.log
 *.tmp
