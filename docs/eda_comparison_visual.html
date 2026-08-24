@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Siemens AOI 팀 EDA 결과를 그래프와 도표로 요약한 시각화 보고서">
+  <title>Siemens AOI · Visual EDA Brief</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #081319;
+      --surface: #0e2028;
+      --surface-2: #142b34;
+      --line: #28414b;
+      --text: #f1f7f5;
+      --muted: #9bb0b5;
+      --mint: #73e6c2;
+      --mint-soft: #193f3b;
+      --yellow: #f5d76e;
+      --orange: #ff8d67;
+      --blue: #72a8ff;
+      --purple: #b99aff;
+      --red: #ff6f7f;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 78% 2%, rgba(115, 230, 194, 0.12), transparent 30rem),
+        radial-gradient(circle at 12% 28%, rgba(114, 168, 255, 0.08), transparent 26rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      line-height: 1.58;
+    }
+
+    a { color: var(--mint); text-underline-offset: 0.2em; }
+    strong { color: var(--text); }
+    .page { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 72px; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 520px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: end;
+      gap: 36px;
+      padding: clamp(32px, 7vw, 78px);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: linear-gradient(145deg, rgba(20, 43, 52, 0.96), rgba(8, 19, 25, 0.94));
+      box-shadow: var(--shadow);
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      right: -130px;
+      top: -190px;
+      border-radius: 50%;
+      border: 78px solid rgba(115, 230, 194, 0.09);
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .kicker { margin: 0 0 14px; color: var(--mint); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.4rem); line-height: 0.98; letter-spacing: -0.07em; }
+    .hero-copy { max-width: 720px; margin: 24px 0 0; color: var(--muted); font-size: 1.04rem; }
+    .hero-visual { position: relative; z-index: 1; display: grid; justify-items: center; align-content: center; }
+    .ring {
+      --p: 3.5deg;
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(260px, 65vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(var(--mint) 0 var(--p), rgba(255,255,255,0.09) var(--p) 360deg);
+    }
+    .ring::after { content: ""; position: absolute; inset: 18px; border-radius: 50%; background: var(--surface); }
+    .ring-value { position: relative; z-index: 1; text-align: center; }
+    .ring-value strong { display: block; font-size: 3.7rem; line-height: 1; letter-spacing: -0.07em; }
+    .ring-value span { display: block; margin-top: 8px; color: var(--muted); font-size: 0.75rem; }
+    .ring-note { margin-top: 14px; color: var(--yellow); font-size: 0.76rem; text-align: center; }
+
+    .quick-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+    .quick-nav a { padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); text-decoration: none; font-size: 0.72rem; }
+    .quick-nav a:hover { border-color: var(--mint); color: var(--mint); }
+
+    section { margin-top: 64px; scroll-margin-top: 20px; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 22px; margin-bottom: 20px; }
+    .eyebrow { color: var(--mint); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    h2 { margin: 5px 0 0; font-size: clamp(1.7rem, 4vw, 2.8rem); line-height: 1.15; letter-spacing: -0.045em; }
+    .section-head p { max-width: 520px; margin: 0; color: var(--muted); font-size: 0.86rem; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stat, .panel {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(14, 32, 40, 0.88);
+      box-shadow: var(--shadow);
+    }
+    .stat { padding: 22px; }
+    .stat span { display: block; color: var(--muted); font-size: 0.72rem; }
+    .stat strong { display: block; margin-top: 5px; font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.045em; }
+    .stat small { display: block; margin-top: 8px; color: var(--mint); font-size: 0.68rem; }
+
+    .panel { padding: clamp(20px, 4vw, 32px); }
+    .panel-title { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 22px; }
+    .panel-title h3 { margin: 0; font-size: 1.08rem; }
+    .panel-title span { color: var(--muted); font-size: 0.72rem; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .chart-scroll { overflow-x: auto; }
+
+    .type-chart { display: grid; gap: 17px; }
+    .type-line { display: grid; grid-template-columns: 58px 1fr 94px 1fr 76px; align-items: center; gap: 10px; }
+    .type-label { font-size: 0.78rem; font-weight: 800; }
+    .track { height: 11px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,0.07); }
+    .fill { height: 100%; border-radius: inherit; background: var(--blue); }
+    .fill.rate { background: var(--mint); }
+    .type-value { color: var(--muted); font-size: 0.7rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .axis-pair { display: grid; grid-template-columns: 58px 1fr 94px 1fr 76px; gap: 10px; margin-bottom: 9px; color: var(--muted); font-size: 0.66rem; }
+    .axis-pair span:nth-child(2), .axis-pair span:nth-child(4) { text-align: center; }
+
+    .timeline-svg { display: block; width: 100%; min-width: 700px; height: auto; }
+    .timeline-svg text { fill: var(--muted); font-family: inherit; font-size: 12px; }
+    .timeline-svg .axis-title { fill: var(--text); font-weight: 700; }
+    .timeline-svg .grid { stroke: var(--line); stroke-width: 1; }
+    .timeline-svg .volume { fill: var(--blue); opacity: 0.35; }
+    .timeline-svg .rate-line { fill: none; stroke: var(--mint); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+    .timeline-svg .rate-dot { fill: var(--mint); }
+    .timeline-svg .late-zone { fill: var(--orange); opacity: 0.08; }
+    .timeline-svg .late-label { fill: var(--orange); font-weight: 800; }
+
+    .split-compare { display: grid; gap: 22px; }
+    .split-row { display: grid; grid-template-columns: 130px repeat(3, 1fr); gap: 9px; align-items: end; min-height: 180px; }
+    .split-name { align-self: center; }
+    .split-name strong { display: block; }
+    .split-name span { color: var(--muted); font-size: 0.7rem; }
+    .split-bar-wrap { display: grid; align-items: end; height: 150px; }
+    .split-bar { position: relative; min-height: 5px; border-radius: 9px 9px 2px 2px; background: var(--blue); }
+    .split-bar.validation { background: var(--purple); }
+    .split-bar.test { background: var(--orange); }
+    .split-bar b { position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); color: var(--text); font-size: 0.7rem; white-space: nowrap; }
+    .split-bar-wrap small { margin-top: 6px; color: var(--muted); font-size: 0.65rem; text-align: center; }
+
+    .feature-bars { display: grid; gap: 15px; }
+    .feature-row { display: grid; grid-template-columns: 54px 1fr 50px; align-items: center; gap: 10px; }
+    .feature-stack { display: flex; height: 18px; overflow: hidden; border-radius: 4px; background: rgba(255,255,255,0.06); }
+    .feature-stack span:nth-child(1) { background: #52646c; }
+    .feature-stack span:nth-child(2) { background: var(--yellow); }
+    .feature-stack span:nth-child(3) { background: var(--orange); }
+    .feature-stack span:nth-child(4) { background: var(--mint); }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--muted); font-size: 0.69rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 9px; height: 9px; border-radius: 2px; }
+
+    .psi { display: grid; gap: 13px; }
+    .psi-row { display: grid; grid-template-columns: 58px 1fr 54px; gap: 10px; align-items: center; }
+    .psi-stack { display: flex; height: 22px; overflow: hidden; border-radius: 4px; }
+    .psi-stack span:nth-child(1) { background: var(--mint); }
+    .psi-stack span:nth-child(2) { background: var(--yellow); }
+    .psi-stack span:nth-child(3) { background: var(--orange); }
+    .psi-row small { color: var(--muted); font-size: 0.66rem; text-align: right; }
+
+    .coverage-wrap { overflow-x: auto; }
+    .coverage { width: 100%; min-width: 720px; border-collapse: collapse; }
+    .coverage th, .coverage td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: center; font-size: 0.74rem; }
+    .coverage th:first-child, .coverage td:first-child { text-align: left; }
+    .coverage th { color: var(--muted); font-weight: 700; }
+    .dot { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--mint-soft); color: var(--mint); font-size: 0.7rem; font-weight: 900; }
+    .dot.deep { background: var(--mint); color: var(--bg); }
+    .dot.none { background: rgba(255,255,255,0.05); color: #64777d; }
+
+    .signature-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .flow-node { position: relative; min-height: 150px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-2); }
+    .flow-node:not(:last-child)::after { content: "→"; position: absolute; top: 50%; right: -18px; z-index: 2; color: var(--mint); font-size: 1.3rem; font-weight: 900; }
+    .flow-node span { display: block; color: var(--muted); font-size: 0.68rem; }
+    .flow-node strong { display: block; margin-top: 8px; color: var(--mint); font-size: 1.65rem; line-height: 1.05; letter-spacing: -0.04em; }
+    .flow-node p { margin: 10px 0 0; color: var(--muted); font-size: 0.7rem; }
+
+    .warning { display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 20px; border-left: 3px solid var(--orange); background: rgba(255,141,103,0.08); }
+    .warning + .warning { margin-top: 10px; }
+    .warning-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--orange); color: var(--bg); font-weight: 900; }
+    .warning h3 { margin: 0 0 5px; font-size: 0.92rem; }
+    .warning p { margin: 0; color: var(--muted); font-size: 0.78rem; }
+
+    .protocol { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; counter-reset: protocol; }
+    .step { position: relative; min-height: 135px; padding: 17px; border-top: 2px solid var(--mint); background: var(--surface); counter-increment: protocol; }
+    .step::before { content: counter(protocol, decimal-leading-zero); color: var(--mint); font-size: 0.68rem; font-weight: 900; }
+    .step strong { display: block; margin-top: 12px; font-size: 0.8rem; }
+    .step span { display: block; margin-top: 7px; color: var(--muted); font-size: 0.67rem; }
+    .step:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 52px; z-index: 2; color: var(--mint); }
+
+    .bottom-link { margin-top: 56px; padding: 25px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--muted); font-size: 0.8rem; text-align: center; }
+    footer { margin-top: 34px; color: var(--muted); font-size: 0.7rem; text-align: center; }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; align-items: start; }
+      .hero-visual { justify-items: start; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .two { grid-template-columns: 1fr; }
+      .protocol { grid-template-columns: repeat(3, 1fr); }
+      .step:nth-child(3)::after { display: none; }
+    }
+    @media (max-width: 660px) {
+      .page { width: min(100% - 20px, 1240px); padding-top: 10px; }
+      .hero { min-height: 0; border-radius: 22px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 8px; }
+      .type-line, .axis-pair { grid-template-columns: 48px 1fr 70px; }
+      .type-line > :nth-child(4), .type-line > :nth-child(5), .axis-pair > :nth-child(4) { display: none; }
+      .signature-flow { grid-template-columns: 1fr 1fr; }
+      .flow-node:nth-child(2)::after { display: none; }
+      .protocol { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(3)::after { display: block; }
+      .step:nth-child(even)::after { display: none; }
+    }
+    @media (max-width: 420px) {
+      .stats, .signature-flow, .protocol { grid-template-columns: 1fr; }
+      .flow-node::after, .step::after { display: none !important; }
+      .split-row { grid-template-columns: 92px repeat(3, 1fr); }
+    }
+    @media print {
+      :root { color-scheme: dark; }
+      body { background: var(--bg); print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .page { width: 100%; padding: 0; }
+      .panel, .stat, .hero { box-shadow: none; }
+      section { break-inside: avoid; margin-top: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="hero-content">
+        <p class="kicker">Siemens AOI · Visual EDA brief</p>
+        <h1>데이터가 말하는<br>다음 실험의 조건</h1>
+        <p class="hero-copy">
+          팀원 4명의 EDA를 하나의 시각 언어로 합쳤다. 핵심은 “정확도 높은 분류기”가 아니라
+          검사유형·시간·반복 입력을 존중하면서 실제 불량을 놓치지 않는 안전한 2차 판정기다.
+        </p>
+        <nav class="quick-nav" aria-label="페이지 목차">
+          <a href="#overview">구조</a><a href="#time">시간</a><a href="#features">피처</a>
+          <a href="#coverage">기여</a><a href="#quality">주의</a><a href="#protocol">프로토콜</a>
+        </nav>
+      </div>
+      <div class="hero-visual" aria-label="전체 true defect 비율 1.05%">
+        <div class="ring"><div class="ring-value"><strong>1.05%</strong><span>true defect<br>4,622 / 440,274</span></div></div>
+        <div class="ring-note">98.95%는 AOI false call · 단순 Accuracy 사용 금지</div>
+      </div>
+    </header>
+
+    <section id="overview">
+      <div class="section-head"><div><span class="eyebrow">01 · Data anatomy</span><h2>한눈에 보는 데이터 구조</h2></div><p>77개 공식 컬럼에 헤더 없는 행 식별자 1개가 더해진 CSV다. NaN은 없지만 “해당 없음”은 값이 아니라 mapping으로 판별해야 한다.</p></div>
+      <div class="stats">
+        <div class="stat"><span>검사 레코드</span><strong>440,274</strong><small>132일 · 실제 관측 101일</small></div>
+        <div class="stat"><span>공식 데이터 컬럼</span><strong>77 + 1</strong><small>+1은 비고유 특성이 아닌 row ID</small></div>
+        <div class="stat"><span>inspection_type</span><strong>5</strong><small>유형마다 유효 피처가 다름</small></div>
+        <div class="stat"><span>결측 / 범위 이탈</span><strong>0 / 0</strong><small>inspection feature는 [0,1]</small></div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-title"><h3>검사유형별 규모와 true defect 비율</h3><span>왼쪽: 행 수 · 오른쪽: 불량률</span></div>
+        <div class="axis-pair"><span></span><span>레코드 수 · 최대 151,931</span><span></span><span>true defect rate · 최대 2.736%</span><span></span></div>
+        <div class="type-chart">
+          <div class="type-line"><span class="type-label">Type 0</span><div class="track"><div class="fill" style="width:63.9%"></div></div><span class="type-value">97,053</span><div class="track"><div class="fill rate" style="width:12%"></div></div><span class="type-value">0.328%</span></div>
+          <div class="type-line"><span class="type-label">Type 1</span><div class="track"><div class="fill" style="width:38%"></div></div><span class="type-value">57,673</span><div class="track"><div class="fill rate" style="width:100%"></div></div><span class="type-value">2.736%</span></div>
+          <div class="type-line"><span class="type-label">Type 2</span><div class="track"><div class="fill" style="width:84.4%"></div></div><span class="type-value">128,174</span><div class="track"><div class="fill rate" style="width:38.4%"></div></div><span class="type-value">1.050%</span></div>
+          <div class="type-line"><span class="type-label">Type 3</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="type-value">151,931</span><div class="track"><div class="fill rate" style="width:30.8%"></div></div><span class="type-value">0.843%</span></div>
+          <div class="type-line"><span class="type-label">Type 4</span><div class="track"><div class="fill" style="width:3.6%"></div></div><span class="type-value">5,443</span><div class="track"><div class="fill rate" style="width:66.5%"></div></div><span class="type-value">1.819%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="time">
+      <div class="section-head"><div><span class="eyebrow">02 · Temporal drift</span><h2>후반부에서 운영 환경이 달라진다</h2></div><p>주간 물량은 크게 출렁이고, 마지막 주의 true defect 비율은 6.65%까지 올라간다. 랜덤 분할은 이 변화를 숨긴다.</p></div>
+      <div class="panel">
+        <div class="panel-title"><h3>주간 검사량과 true defect 비율</h3><span>막대: 주간 행 수 · 선: 불량률</span></div>
+        <div class="chart-scroll">
+          <svg id="weekly-chart" class="timeline-svg" viewBox="0 0 1000 390" role="img" aria-labelledby="weekly-title weekly-desc">
+            <title id="weekly-title">주간 검사량과 true defect 비율 추이</title>
+            <desc id="weekly-desc">6월 23일부터 10월 27일까지 주별 검사량과 실제 불량률. 10월 후반 실제 불량률이 급격히 증가한다.</desc>
+          </svg>
+        </div>
+      </div>
+
+      <div class="two" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-title"><h3>60 / 20 / 20</h3><span>Kimjaehak · timestamp group</span></div>
+          <div class="split-compare">
+            <div class="split-row">
+              <div class="split-name"><strong>불량률</strong><span>Test / Train<br>3.67×</span></div>
+              <div class="split-bar-wrap"><div class="split-bar" style="height:27.2%"><b>0.719%</b></div><small>Train</small></div>
+              <div class="split-bar-wrap"><div class="split-bar validation" style="height:17.1%"><b>0.451%</b></div><small>Validation</small></div>
+              <div class="split-bar-wrap"><div class="split-bar test" style="height:100%"><b>2.641%</b></div><small>Test</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><h3>70 / 15 / 15</h3><span>Peace · timestamp quantile</span></div>
+          <div class="split-compare">
+            <div class="split-row">
+              <div class="split-name"><strong>불량률</strong><span>Test / Train<br>5.2×</span></div>
+              <div class="split-bar-wrap"><div class="split-bar" style="height:19.3%"><b>0.630%</b></div><small>Train</small></div>
+              <div class="split-bar-wrap"><div class="split-bar validation" style="height:24.8%"><b>0.806%</b></div><small>Validation</small></div>
+              <div class="split-bar-wrap"><div class="split-bar test" style="height:100%"><b>3.256%</b></div><small>Test</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-head"><div><span class="eyebrow">03 · Feature validity</span><h2>피처 수가 아니라 유효 정보량을 본다</h2></div><p>mapping에 포함돼도 상수·준상수·저분산일 수 있다. 제거 목록은 전체 기간이 아닌 Train에서 다시 적합해야 한다.</p></div>
+      <div class="two">
+        <div class="panel">
+          <div class="panel-title"><h3>유형별 mapping 피처 구성</h3><span>전체 기간 EDA · 최대 65개</span></div>
+          <div class="feature-bars">
+            <div class="feature-row"><strong>Type 0</strong><div class="feature-stack"><span style="width:10.77%"></span><span style="width:9.23%"></span><span style="width:6.15%"></span><span style="width:41.54%"></span></div><small>44</small></div>
+            <div class="feature-row"><strong>Type 1</strong><div class="feature-stack"><span style="width:43.08%"></span><span style="width:13.85%"></span><span style="width:4.62%"></span><span style="width:18.46%"></span></div><small>52</small></div>
+            <div class="feature-row"><strong>Type 2</strong><div class="feature-stack"><span style="width:69.23%"></span><span style="width:1.54%"></span><span style="width:1.54%"></span><span style="width:27.69%"></span></div><small>65</small></div>
+            <div class="feature-row"><strong>Type 3</strong><div class="feature-stack"><span style="width:70.77%"></span><span style="width:1.54%"></span><span style="width:1.54%"></span><span style="width:26.15%"></span></div><small>65</small></div>
+            <div class="feature-row"><strong>Type 4</strong><div class="feature-stack"><span style="width:12.31%"></span><span style="width:0%"></span><span style="width:4.62%"></span><span style="width:15.38%"></span></div><small>21</small></div>
+          </div>
+          <div class="legend"><span><i class="swatch" style="background:#52646c"></i>상수</span><span><i class="swatch" style="background:var(--yellow)"></i>준상수</span><span><i class="swatch" style="background:var(--orange)"></i>저분산</span><span><i class="swatch" style="background:var(--mint)"></i>잠정 후보</span></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><h3>Train → Test PSI</h3><span>유효·비상수 피처 113개</span></div>
+          <div class="psi">
+            <div class="psi-row"><strong>Type 0</strong><div class="psi-stack"><span style="width:91.9%"></span><span style="width:8.1%"></span><span style="width:0%"></span></div><small>0 / 37</small></div>
+            <div class="psi-row"><strong>Type 1</strong><div class="psi-stack"><span style="width:66.7%"></span><span style="width:20.8%"></span><span style="width:12.5%"></span></div><small>3 / 24</small></div>
+            <div class="psi-row"><strong>Type 2</strong><div class="psi-stack"><span style="width:65%"></span><span style="width:20%"></span><span style="width:15%"></span></div><small>3 / 20</small></div>
+            <div class="psi-row"><strong>Type 3</strong><div class="psi-stack"><span style="width:15.8%"></span><span style="width:68.4%"></span><span style="width:15.8%"></span></div><small>3 / 19</small></div>
+            <div class="psi-row"><strong>Type 4</strong><div class="psi-stack"><span style="width:7.7%"></span><span style="width:7.7%"></span><span style="width:84.6%"></span></div><small>11 / 13</small></div>
+          </div>
+          <div class="legend"><span><i class="swatch" style="background:var(--mint)"></i>PSI &lt; 0.10</span><span><i class="swatch" style="background:var(--yellow)"></i>0.10–0.25</span><span><i class="swatch" style="background:var(--orange)"></i>≥ 0.25</span></div>
+          <p style="margin:18px 0 0;color:var(--muted);font-size:.72rem">Type 4의 11/13은 강한 경고지만 Test 표본이 728행뿐이므로 즉시 제거 기준이 아닌 모니터링 대상으로 본다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="coverage">
+      <div class="section-head"><div><span class="eyebrow">04 · Team coverage</span><h2>네 분석이 서로 채운 빈칸</h2></div><p>짙은 원은 심층 분석, 옅은 원은 기본 확인을 뜻한다. 중복보다 보완 관계가 크다.</p></div>
+      <div class="panel coverage-wrap">
+        <table class="coverage">
+          <thead><tr><th>분석 영역</th><th>Dongjin</th><th>Kimjaehak</th><th>LSW</th><th>Peace</th><th>통합 결론</th></tr></thead>
+          <tbody>
+            <tr><td>스키마·결측·범위</td><td><span class="dot">✓</span></td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td>77 + row ID · NaN 0</td></tr>
+            <tr><td>mapping·구조적 무효</td><td><span class="dot none">–</span></td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td>값이 아닌 mapping 사용</td></tr>
+            <tr><td>단변량 신호·분리도</td><td><span class="dot deep">✓</span></td><td><span class="dot">✓</span></td><td><span class="dot none">–</span></td><td><span class="dot deep">✓</span></td><td>Type 1 상대적 신호</td></tr>
+            <tr><td>시간 drift·split</td><td><span class="dot none">–</span></td><td><span class="dot deep">✓</span></td><td><span class="dot">✓</span></td><td><span class="dot deep">✓</span></td><td>미래 구간 급변</td></tr>
+            <tr><td>중복·signature</td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td><span class="dot">✓</span></td><td><span class="dot none">–</span></td><td>삭제보다 전략 비교</td></tr>
+            <tr><td>운영 지표·모델 방향</td><td><span class="dot deep">✓</span></td><td><span class="dot deep">✓</span></td><td><span class="dot">✓</span></td><td><span class="dot deep">✓</span></td><td>Recall 제약 + 절감량</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><div><span class="eyebrow">05 · Repeated inputs</span><h2>중복은 한 종류가 아니다</h2></div><p>완전 중복, 시간·타깃을 제외한 반복 입력, 라벨 충돌, split 간 재등장을 구분해야 한다.</p></div>
+      <div class="signature-flow">
+        <div class="flow-node"><span>전체 레코드</span><strong>440,274</strong><p>입력 signature 391,922개</p></div>
+        <div class="flow-node"><span>반복 signature 관련</span><strong>58,810</strong><p>10,458개 반복 그룹</p></div>
+        <div class="flow-node"><span>label conflict 관련</span><strong>14,037</strong><p>70개 충돌 signature</p></div>
+        <div class="flow-node"><span>cross-split 관련</span><strong>30,455</strong><p>2,948개 signature</p></div>
+      </div>
+      <p style="color:var(--muted);font-size:.72rem;margin:14px 0 0">완전 중복은 별도 집계로 4,250개 그룹 · 관련 13,002행 · 초과 8,752행이다. 위 단계들은 포함 관계가 아닌 서로 다른 관점의 집계다.</p>
+    </section>
+
+    <section id="quality">
+      <div class="section-head"><div><span class="eyebrow">06 · Guardrails</span><h2>그래프보다 먼저 지켜야 할 세 가지</h2></div><p>EDA에서 나온 강한 주장도 근거 수준을 구분해 사용한다.</p></div>
+      <div class="warning"><div class="warning-mark">0</div><div><h3>모든 0을 NaN으로 바꾸지 않는다</h3><p>Type 2·3의 무효 셀은 0이 전혀 없고, 유효 측정에도 0이 존재할 수 있다. 유효성의 기준은 mapping.json뿐이다.</p></div></div>
+      <div class="warning"><div class="warning-mark">L</div><div><h3>라벨 충돌을 곧바로 작업자 과실로 단정하지 않는다</h3><p>70개 충돌 signature는 강한 노이즈 신호지만, 누락 변수·반복 공정·정밀도 문제를 현재 익명 데이터만으로 분리할 수 없다.</p></div></div>
+      <div class="warning"><div class="warning-mark">T</div><div><h3>전체 기간으로 피처 제거 목록을 확정하지 않는다</h3><p>상수·준상수·저분산·상관 필터는 시간 분할 후 Train에만 적합하고 Validation/Test에는 고정 적용한다.</p></div></div>
+    </section>
+
+    <section id="protocol">
+      <div class="section-head"><div><span class="eyebrow">07 · Next experiment</span><h2>모든 모델이 따라야 할 한 줄</h2></div><p>같은 split과 같은 운영 지표를 사용해야 지도학습·이상탐지·drift 대응을 공정하게 비교할 수 있다.</p></div>
+      <div class="protocol">
+        <div class="step"><strong>스키마 고정</strong><span>77 공식 컬럼과 row ID 분리</span></div>
+        <div class="step"><strong>그룹 시간분할</strong><span>timestamp 경계 보존 60/20/20</span></div>
+        <div class="step"><strong>mapping 적용</strong><span>type별 유효 피처만 선택</span></div>
+        <div class="step"><strong>Train-only fit</strong><span>피처 필터·전처리 통계</span></div>
+        <div class="step"><strong>동일 조건 비교</strong><span>Dummy → Logistic → XGBoost</span></div>
+        <div class="step"><strong>안전성 평가</strong><span>Recall → PR-AUC → 절감·비용</span></div>
+      </div>
+    </section>
+
+    <div class="bottom-link">
+      상세 수치, 정의 차이, 근거 파일 링크는 <a href="eda_comparison.html">EDA 통합 비교 보고서 v1</a>에서 확인할 수 있다.
+    </div>
+    <footer>main@85aa326 · 2026-08-24 · merged EDA notebooks 7개 기준 · 모델 학습 전 시각 요약</footer>
+  </main>
+
+  <script>
+    (() => {
+      const weekly = [{"date":"06-23","rows":17105,"defects":18,"rate":0.1052},{"date":"06-30","rows":18052,"defects":48,"rate":0.2659},{"date":"07-07","rows":16885,"defects":33,"rate":0.1954},{"date":"07-14","rows":6642,"defects":75,"rate":1.1292},{"date":"07-21","rows":10836,"defects":300,"rate":2.7685},{"date":"07-28","rows":26426,"defects":601,"rate":2.2743},{"date":"08-04","rows":28004,"defects":67,"rate":0.2393},{"date":"08-11","rows":5619,"defects":80,"rate":1.4237},{"date":"08-18","rows":51370,"defects":201,"rate":0.3913},{"date":"08-25","rows":4909,"defects":35,"rate":0.713},{"date":"09-01","rows":6893,"defects":112,"rate":1.6248},{"date":"09-08","rows":19568,"defects":172,"rate":0.879},{"date":"09-15","rows":38428,"defects":105,"rate":0.2732},{"date":"09-22","rows":17419,"defects":54,"rate":0.31},{"date":"09-29","rows":49491,"defects":40,"rate":0.0808},{"date":"10-06","rows":30860,"defects":268,"rate":0.8684},{"date":"10-13","rows":27307,"defects":278,"rate":1.0181},{"date":"10-20","rows":45160,"defects":852,"rate":1.8866},{"date":"10-27","rows":19300,"defects":1283,"rate":6.6477}];
+      const svg = document.getElementById("weekly-chart");
+      const NS = "http://www.w3.org/2000/svg";
+      const make = (tag, attrs = {}, text = "") => {
+        const el = document.createElementNS(NS, tag);
+        Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        if (text) el.textContent = text;
+        svg.appendChild(el);
+        return el;
+      };
+      const left = 70, right = 950, top = 32, base = 315;
+      const plotW = right - left, plotH = base - top;
+      const maxRows = 55000, maxRate = 7;
+      const step = plotW / weekly.length;
+      make("rect", {x:left + step * 16.7, y:top, width:right - (left + step * 16.7), height:plotH, class:"late-zone"});
+      make("text", {x:right - 10, y:top + 18, "text-anchor":"end", class:"late-label"}, "후기 불량률 급증");
+      [0, 1.75, 3.5, 5.25, 7].forEach(rate => {
+        const y = base - (rate / maxRate) * plotH;
+        make("line", {x1:left, y1:y, x2:right, y2:y, class:"grid"});
+        make("text", {x:left - 12, y:y + 4, "text-anchor":"end"}, rate.toFixed(rate % 1 ? 2 : 0) + "%");
+      });
+      weekly.forEach((d, i) => {
+        const x = left + i * step + step * 0.16;
+        const h = (d.rows / maxRows) * plotH;
+        make("rect", {x, y:base - h, width:step * 0.68, height:h, rx:3, class:"volume"});
+        if (i % 2 === 0 || i === weekly.length - 1) make("text", {x:x + step * 0.34, y:base + 22, "text-anchor":"middle"}, d.date);
+      });
+      const points = weekly.map((d, i) => {
+        const x = left + i * step + step * 0.5;
+        const y = base - (d.rate / maxRate) * plotH;
+        return [x, y];
+      });
+      make("path", {d:points.map((p,i)=>(i?"L":"M")+p[0]+","+p[1]).join(" "), class:"rate-line"});
+      points.forEach((p, i) => make("circle", {cx:p[0], cy:p[1], r:i===points.length-1?7:3.5, class:"rate-dot"}));
+      make("text", {x:left, y:16, class:"axis-title"}, "true defect rate (%)");
+      make("text", {x:right, y:base + 48, "text-anchor":"end", class:"axis-title"}, "주 시작일 (1970, 익명화)");
+      const last = points[points.length - 1];
+      make("text", {x:last[0] - 10, y:last[1] - 14, "text-anchor":"end", class:"late-label"}, "6.65%");
+    })();
+  </script>
+</body>
+</html>
