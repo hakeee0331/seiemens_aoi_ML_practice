@@ -22,21 +22,23 @@
 | `0824_lsw_004_imbalance_handling` | 불균형 처리 4기법(class_weight/SMOTE/ADASYN/undersample) + 라벨 클렌징(dongjin 아이디어 차용) 비교. **노트북 12절에 003+004 전체를 합친 검사유형별 최적 조합 표 있음** — 지금까지의 최종 결론(005에서도 안 뒤집힘). |
 | `0825_lsw_005_drift_label_robust` | recency weighting(시간감쇠 sample_weight) + 라벨 최근값 보정(삭제 대신 수정) 검증. **둘 다 004의 최적 조합 순위를 못 뒤집음** — feature selection(보류) → drift 대응 → 라벨 강건 학습 순으로 다 검토했고 004가 여전히 최종 baseline. |
 | `0825_lsw_006_sliding_window_drift` | 같은 크기(Train 40%) 윈도우를 20%씩 밀며 매번 새로 학습(사용자 제안 설계). **type0/1/3은 마지막 구간(80~100%)에서 Volume Reduction이 급락**(type0 48%→7%, type3 28%→2%) — 매번 최신 데이터로 재학습해도 drift를 완전히 못 이긴다는 뜻. Phase 2(로드맵) 항목 완료. |
+| `0825_lsw_007_cleanlab_confident_learning` | cleanlab로 라벨 이슈를 넓게 탐지, **baseline이 아니라 004 "현재 최고 기법" 대비**로 채택 여부 판단(방법론 전환 — 아래 참고). **type3에서 cleanlab+smote가 새 챔피언**(두 비용비율 모두 개선, 1:10은 43%↓). type0/2는 표본부족/concept drift로 오히려 악화 — confident learning이 만능이 아니라 유형 특성을 탄다는 근거. |
 
 ## 핵심 확정 사실 (틀리기 쉬우니 재확인 없이 재사용해도 됨)
 
 1. **통합모델은 어느 유형·어느 비용비율에서도 최적이 아니다.** 5분리 구조가 항상 이긴다.
 2. **비교는 항상 baseline 대비 ΔTN(이득)/ΔFN(손해) 원본 건수로 한다** (비율만 보지 않음) — `docs/lsw/project/scope_and_roadmap.md`에 규칙으로 명문화됨. 예측 1(불량의심)로 남는 TP/FP는 baseline과 동일 처리라 변화가 없고, 실제 변화는 TN/FN 두 칸에서만 생긴다는 게 근거.
-3. **검사유형별 최적 조합(002+003+004+005 종합, `0824_lsw_004` 노트북 12절 + `0825_lsw_005`)**:
-   - type0: label_cleansing(모순 라벨 삭제) — 단, 유형 전체가 아니라 이 유형만 선택 적용
+3. **검사유형별 최적 조합(002~007 종합, 최신 — `0825_lsw_007` 문서 기준)**:
+   - type0: label_cleansing(모순 라벨 삭제) — 유형 전체가 아니라 이 유형만 선택 적용
    - type1/2/4: undersample
-   - type3: 1:10에서 adasyn, 1:100에서 smote
+   - **type3: cleanlab(confident learning) + smote — 007에서 새 챔피언으로 갱신** (기존 adasyn/smote 대비 1:10에서 43% 비용 절감)
    - (라벨 클렌징을 **전체 유형에 일괄 적용하면 pooled 기준 순손해** — type2에서 TN 3,072건 잃고 FN 10건만 줄어 나쁜 거래였음. type0은 반대로 단독으로는 이득이었는데 이전에 "type0이 손해 원인"이라고 잘못 정리했던 걸 정정함.)
    - **005에서 재검증**: recency weighting(시간감쇠 sample_weight)과 "삭제 대신 최근 라벨로 보정"
-     둘 다 시도했지만 위 조합 순위를 못 뒤집었다 — type1은 recency weighting(hl=60일)이 baseline은
-     이기지만 undersample에는 못 미침, type2는 라벨 보정이 삭제보다는 손해가 작지만 그래도
-     baseline(아무것도 안 함)보다 나쁨, type0은 라벨 보정이 오히려 baseline보다 크게 나쁨(TN 붕괴).
-     즉 위 표는 **재검증을 거친 안정적인 결론**이다.
+     둘 다 시도했지만 baseline 대비로만 봤을 땐 004 조합 순위를 못 뒤집었다.
+   - **007에서 cleanlab 재검증(baseline이 아니라 "현재 최고 기법" 대비로 판단)**: type3만 확실히
+     개선(표본 충분+concept drift 약함). type0(양성 57건, 표본 부족)과 type2(concept drift가
+     강한 유형)는 cleanlab이 오히려 악화시킴 — 라벨 정제 기법은 유형의 표본 크기·drift 강도에
+     따라 먹히는지 여부가 갈린다.
 4. **총비용 시나리오**: FP:FN = 1:10, 1:100 두 개를 병행 계산 (`scope_and_roadmap.md`에 확정).
 5. **임계값 탐색은 "관측된 확률값 후보 exact search"를 쓴다** (0.01 grid 아님 — 해상도 문제로 이전에 버그 있었음).
 6. **표본 부족 유형(type0, type4)은 결과 신뢰도가 낮다.** rule of three로 보면 Validation 불량 8건(type0)으로는 1% 목표를 통계적으로 검증할 근거가 원천적으로 없음(300건 필요). type4는 특히 Train(13건)보다 Val(60건) 표본이 더 많은 이상 패턴 — 아래 drift 항목 참고.
@@ -74,11 +76,15 @@ dev에 이미 있던 dongjin의 `006-008`(mapping.json 마스킹+MoE 결합 → 
 
 ### 다음 세션에서 할 일
 
-1. **이상치 탐지 재구현**(라벨 무관 극단값 기준: 클래스와 무관하게 비슷한 비율로, 극소수만, 해당
+1. **임계값 재조정 실험(치팅 아닌 버전)** — 사용자가 제안: 현재 평가 구간의 실제 라벨을 쓰면
+   치팅이지만, **과거 확정 구간의 관측 불량률/Slip Rate로 다음 구간의 임계값을 조정**하는 건
+   합법적인 온라인 재보정이다. 재학습 없이 임계값만 움직이는 훨씬 싼 대안이라 검증 가치 있음 —
+   다음 세션에서 착수 예정(직전 대화에서 방향만 합의, 아직 노트북 없음).
+2. **이상치 탐지 재구현**(라벨 무관 극단값 기준: 클래스와 무관하게 비슷한 비율로, 극소수만, 해당
    컬럼 자체 분포 기준으로 튀는 값) — 004에서 개념만 정리해두고 아직 재구현 안 함.
-2. **Phase 4(비지도 이상탐지)로 이동 가능** — feature selection/drift(003~006)/라벨강건 학습 모두
-   결론이 났고(004의 검사유형별 최적 조합표가 최종), 어느 것도 이를 못 뒤집었다. 006까지 마쳐서
-   로드맵 Phase 2(drift 대응)도 완료 처리됨.
+3. **Phase 4(비지도 이상탐지)로 이동 가능** — feature selection/drift(003~006)/라벨강건 학습
+   (005~007) 모두 결론이 났다. 006까지 마쳐서 로드맵 Phase 2(drift 대응)도 완료 처리됨.
+   type3는 007에서 cleanlab+smote로 갱신됐고 나머지 유형은 004 조합이 최종.
 3. **dev의 dongjin/peace 작업과 계속 겹칠 수 있음** — 새 작업 시작 전에 `docs/experiments/index.md`, `docs/model_val.md`를 dev에서 다시 확인 권장. dongjin은 MoE(=5분리와 동일 개념), ADASYN, RuleFit, isolation forest, SHAP 등 이미 13개 실험 진행(단, 노트북 파일 자체는 repo에 있는 것도 있고 문서 요약만 있는 것도 있음).
 4. **dongjin의 pooled PR-AUC 지표는 5개 유형 모델의 예측을 그냥 합쳐서 계산한 값**이라 서로 다른 모델의 확률 스케일 비교 가능성이 검증 안 됨 — 절대 수치보다 방향성 참고용으로만 쓸 것.
 
