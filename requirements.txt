@@ -1,3 +1,4 @@
+imbalanced-learn
 jupyterlab
 joblib
 matplotlib

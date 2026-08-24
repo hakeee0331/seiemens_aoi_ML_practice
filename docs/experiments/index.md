@@ -16,7 +16,7 @@
 | `0824_kimjaehak_006_type_conditioned_baseline` | 완료 | kimjaehak | mapping 기반 검사유형별 XGBoost 베이스라인 | Type-conditioned XGBoost | Test F1 0.3632, Recall 0.3161, PR-AUC 0.3154 |
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
-| `0824_lsw_004_imbalance_handling` | 진행 중 | lsw | 5분리 구조에서 불균형 처리 기법 비교 (1차: SMOTE 전 소수 클래스 이상치 체크) | 해당 없음 | 섞인 IQR 기준(40~54%)은 과장이었음을 확인 — 정상 클래스 기준 재분석 결과 type0만 일부(26~40%) 진짜 신호, 나머지는 이상치 제거 근거 부족 |
+| `0824_lsw_004_imbalance_handling` | 완료 | lsw | 5분리 구조에서 불균형 처리 기법(class_weight/SMOTE/ADASYN/undersampling) 비교 | XGBoost (type×기법) | 유형마다 최적 기법이 다름 — type1/2는 class_weight로 Slip Rate 개선, type0/3/4는 어떤 기법도 목표(≤1%) 미달성 |
 
 ## 상태 값
 
