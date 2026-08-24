@@ -12,6 +12,7 @@
 | `0823_kimjaehak_003_feature_validity` | 완료 | kimjaehak | 검사유형별 유효·무효 피처 패턴 분석 | 해당 없음 | 전역 미매핑 5개, 유형별 잠정 후보 27/12/18/17/10개 |
 | `0823_kimjaehak_004_duplicate_groups` | 완료 | kimjaehak | 완전 중복·timestamp 그룹·signature 재등장 분석 | 해당 없음 | 중복 초과 8,752건, test의 9.6704%가 이전 signature 재등장 |
 | `0824_peace_001_eda` | 완료 | peace | Siemens AOI 데이터 EDA와 시간 드리프트 점검 | 해당 없음 | 실제 불량 1.05%, Test 불량률은 Train의 약 5.2배 |
+| `0824_kimjaehak_005_xgboost_baseline` | 완료 | kimjaehak | 시간순 분할 기반 XGBoost 단순 베이스라인 | XGBoost | Test F1 0.3066, Recall 0.2623, PR-AUC 0.2368 |
 
 ## 상태 값
 
