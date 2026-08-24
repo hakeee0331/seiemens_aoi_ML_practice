@@ -17,20 +17,24 @@
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
 | `0824_lsw_004_imbalance_handling` | 완료 | lsw | 5분리 구조에서 불균형 처리 기법(class_weight/SMOTE/ADASYN/undersampling) 비교 | XGBoost (type×기법) | 유형마다 최적 기법이 다름 — type1/2는 class_weight로 Slip Rate 개선, type0/3/4는 어떤 기법도 목표(≤1%) 미달성 |
-| `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
 | `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
 | `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
 | `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
 | `0824_dongjin_009_label_cleansing` | 완료 | dongjin | 라벨 클렌징 가설(EXP_03) 실험 | XGBoost (5 models) | 오탐(FP) 감소로 PR-AUC 상승(0.348) |
 | `0824_dongjin_010_spatial_correlation` | 완료 | dongjin | 공간 상관관계(EXP_05) 실험 | XGBoost (5 models) | Val 성능 폭등, Test 성능 급락 (심각한 Temporal Overfitting) |
 | `0824_dongjin_011_dynamic_tolerance` | 완료 | dongjin | 시계열 정규화(EXP_07) 실험 | XGBoost (5 models) | 성능 완전 붕괴 (Catastrophic Failure) |
-| `0824_dongjin_013_adasyn` 등 | 완료 | dongjin | SMOTE/ADASYN/RUS 샘플링 비교 | XGBoost (5 models) | ADASYN 압도적 성능 입증 (PR-AUC 0.456) |
+| `0824_dongjin_012_smote` | 완료 | dongjin | 불균형 해소를 위한 SMOTE 오버샘플링 실험 | XGBoost (5 models) | PR-AUC 상승 (0.394) |
+| `0824_dongjin_013_adasyn` | 완료 | dongjin | 불균형 해소를 위한 ADASYN 오버샘플링 실험 | XGBoost (5 models) | ADASYN 압도적 성능 입증 (PR-AUC 0.456) |
+| `0824_dongjin_014_undersampling` | 완료 | dongjin | 무작위 언더샘플링 (Random Undersampling) 비교 | XGBoost (5 models) | 정상 데이터 유실로 가짜 불량 폭증 (성능 하락) |
 | `0824_dongjin_015_isolation_forest` | 완료 | dongjin | 비지도 학습(Hypothesis 4) 실험 | Isolation Forest (5 models) | Test PR-AUC 0.036 (비지도 학습의 한계 입증) |
 | `0824_dongjin_017_shap_analysis` | 완료 | dongjin | 챔피언 모델 SHAP 변수 중요도 분석 | SHAP + XGBoost | 장비별 불량 유발 핵심 피처 도출 및 XAI 확보 |
 | `0824_dongjin_016_ctgan` | 완료 | dongjin | CTGAN 기반 딥러닝 가상 불량 데이터 증식 | XGBoost + CTGAN | 참패 (오탐 8만건). 극소수 데이터로 인한 GAN 모드 붕괴 |
 | `0824_dongjin_018_rulefit` | 완료 | dongjin | RuleFit을 활용한 명시적 IF-THEN 규칙 도출 | XGBoost + RuleFit | 장비별 임계값(Threshold) 수치화 성공 |
 | `0824_dongjin_019_rule_injection` | 완료 | dongjin | RuleFit 룰셋을 Boolean 변수로 데이터 주입 | XGBoost + ADASYN + Rule | 정밀도(Precision) 최고치 48.5% 달성 (오탐지 253건 대폭 감소) |
 | `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
+| `0824_dongjin_021_adasyn_time_decay` | 완료 | dongjin | Type-Cond 분리 + ADASYN + Time-Decay 가중치 | XGBoost (5 models) | Test PR-AUC 0.260, Recall 35.3% (Temporal Drift 억제 절반의 성공) |
+| `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
+
 
 ## 상태 값
 
