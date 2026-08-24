@@ -12,6 +12,7 @@
 | `0823_kimjaehak_003_feature_validity` | 완료 | kimjaehak | 검사유형별 유효·무효 피처 패턴 분석 | 해당 없음 | 전역 미매핑 5개, 유형별 잠정 후보 27/12/18/17/10개 |
 | `0823_kimjaehak_004_duplicate_groups` | 완료 | kimjaehak | 완전 중복·timestamp 그룹·signature 재등장 분석 | 해당 없음 | 중복 초과 8,752건, test의 9.6704%가 이전 signature 재등장 |
 | `0824_peace_001_eda` | 완료 | peace | Siemens AOI 데이터 EDA와 시간 드리프트 점검 | 해당 없음 | 실제 불량 1.05%, Test 불량률은 Train의 약 5.2배 |
+| `0824_kimjaehak_005_xgboost_baseline` | 완료 | kimjaehak | 시간순 분할 기반 XGBoost 단순 베이스라인 | XGBoost | Test F1 0.3066, Recall 0.2623, PR-AUC 0.2368 |
 
 ## 상태 값
 
@@ -27,3 +28,4 @@
 - 노트북, 실험 문서, 저장 모델은 동일한 stem을 사용한다.
 - 주요 결과에는 핵심 지표나 한 줄 결론만 기록한다.
 - 상세 코드와 출력은 노트북에, 목적과 변경사항 및 결론은 개별 실험 문서에 기록한다.
+- 모델의 최종 Test 비교 결과는 `docs/model_val.md`에도 기록한다.
