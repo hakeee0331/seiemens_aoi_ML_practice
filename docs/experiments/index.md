@@ -64,6 +64,8 @@
 | `0825_peace_013_type_expert_fold_class_soft_voting` | 완료 | peace | 005 Fold 앙상블과 007 클래스 가중치 모델을 Platt 보정 후 soft voting | XGBoost soft voting | Walk-forward가 alpha=1.00(005만 사용)을 선택해 결합 이득 없음; 내부 Champion 005 유지 |
 | `0825_peace_014_joint_type_threshold_optimization` | 완료 | peace | 007 모델의 전체 Recall 제약 기반 타입별 임계값 공동 최적화 | XGBoost + joint type thresholds | Test FP 17,845개 감소·FCR +20.82%p, Recall 94.06%로 99% 목표 미달 |
 | `0825_dongjin_025_ensemble_shap_analysis` | 완료 | dongjin | 005_type_expert_fold_ensemble 모델 학습 재현 후 검사유형별 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (20 trained models) | 검사유형별 오탐(False Calls)을 유발하는 핵심 피처 10개와 Threshold 구간 도출 완료 |
+| `0826_dongjin_026_saved_ensemble_shap` | 완료 | dongjin | 저장된 005_type_expert_fold_ensemble 모델(`.pkl`)의 내부 전처리기를 직접 로드하여 False Positives(오탐)를 유발하는 Feature에 대한 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (Saved Bundle) | Type 1, 2, 3에서 오탐을 유발하는 주요 피처 파악 (Threshold=0.5 기준) |
+| `0826_dongjin_027_global_ensemble_shap` | 완료 | dongjin | 특정 오탐에 국한하지 않고 전체 Test Set을 대상으로 클래스 0(정상)과 1(불량)을 분류할 때 가장 크게 의존한 Global Feature Importance 도출 | XGBoost Fold ensemble (Saved Bundle) | 각 Type별 Test 셋 전역에서 가장 기여도가 높은 핵심 피처 파악 완료 |
 
 
 ## 상태 값
