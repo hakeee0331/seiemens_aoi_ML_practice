@@ -55,7 +55,15 @@ Walk-forward에서 학습한 누적 시간 모델들을 실제 Fold 앙상블로
 
 ## 저장 모델
 
-해당 없음. 노트북 실행 중 실제 Fold 모델로 Validation/Test 확률을 생성하지만 모델 파일은 저장하지 않는다.
+`models/0825_peace_005_type_expert_fold_ensemble.pkl`
+
+- 30%, 40%, 50%, 70% checkpoint의 Type별 모델과 전처리기 20개를 저장한다.
+- 최종 추론에서는 Type에 해당하는 checkpoint 모델 4개의 확률을 동일 가중 평균한다.
+- Validation 종료 시각, 공통·Type별 threshold, feature 목록과 데이터 처리 정책을
+  함께 저장한다.
+- 저장 직후 artifact를 다시 불러와 Type별 표본의 앙상블 확률이 완전히 일치하는지
+  검증한다.
+- 모델 파일은 Git에서 제외되므로 필요하면 노트북을 현재 환경에서 실행해 생성한다.
 
 ## 실행 로그
 
