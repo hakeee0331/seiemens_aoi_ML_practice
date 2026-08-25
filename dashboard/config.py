@@ -16,12 +16,3 @@ MODEL_PATH = (
 SAMPLE_IMAGE_DIR = Path(__file__).resolve().parent / "assets" / "sample_images"
 
 HISTORY_DISPLAY_LIMIT = 50
-
-# SHAP 연동 전 화면 구성을 위한 명시적인 데모 값이다.
-MOCK_CAUSE_FEATURE_BY_TYPE = {
-    0: "inspection_feat24",
-    1: "inspection_feat48",
-    2: "inspection_feat96",
-    3: "inspection_feat95",
-    4: "inspection_feat34",
-}

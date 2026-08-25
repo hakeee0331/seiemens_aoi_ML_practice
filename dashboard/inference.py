@@ -195,18 +195,3 @@ class TypeConditionedPredictor:
                 f"지원하지 않는 Inspection Type입니다: {inspection_type}"
             )
         return list(self._feature_columns[inspection_type])
-
-
-def get_mock_cause_feature(
-    row: dict[str, Any],
-    feature_by_type: dict[int, str],
-) -> dict[str, Any]:
-    """SHAP 준비 전 UI 확인용으로만 사용하는 명시적인 임시 설명값."""
-
-    inspection_type = int(row["inspection_type"])
-    feature = feature_by_type.get(inspection_type, "inspection_feat1")
-    return {
-        "feature": feature,
-        "value": row.get(feature),
-        "is_placeholder": True,
-    }

@@ -11,12 +11,12 @@ import streamlit as st
 from config import (
     DATA_PATH,
     HISTORY_DISPLAY_LIMIT,
-    MOCK_CAUSE_FEATURE_BY_TYPE,
     MODEL_PATH,
     SAMPLE_IMAGE_DIR,
 )
 from data_source import (
     CSVInspectionSource,
+    MODEL_PROBABILITY_COLUMN,
     STREAM_ORDER_COLUMN,
     TIME_COLUMN,
     TYPE_COLUMN,
@@ -24,7 +24,7 @@ from data_source import (
     image_for_position,
 )
 from explanation import FeatureSignalProvider, build_feature_signal_provider
-from inference import TypeConditionedPredictor, get_mock_cause_feature
+from inference import TypeConditionedPredictor
 
 
 st.set_page_config(
@@ -69,7 +69,8 @@ def inject_factory_styles() -> None:
         }
         [data-testid="stMarkdownContainer"]:has(.factory-header),
         [data-testid="stMarkdownContainer"]:has(.section-label),
-        [data-testid="stMarkdownContainer"]:has(.inspection-record-bar) {
+        [data-testid="stMarkdownContainer"]:has(.inspection-record-bar),
+        [data-testid="stMarkdownContainer"]:has(.inspection-metric) {
             margin-bottom: 0 !important;
         }
         [data-testid="stElementContainer"]:has(.factory-header)
@@ -169,6 +170,41 @@ def inject_factory_styles() -> None:
         [data-testid="stMetricValue"] {
             font-size: 1.45rem;
             font-weight: 800;
+        }
+        .inspection-metric {
+            box-sizing: border-box;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+            border: 1px solid #777777;
+            padding: 0.3rem 0.5rem;
+            font-family: Arial, sans-serif;
+            color: #111111;
+            overflow: hidden;
+        }
+        .inspection-metric.probability-alert {
+            background: #a93232;
+            border-color: #7f1d1d;
+            color: #ffffff;
+        }
+        .inspection-metric-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .inspection-metric-value {
+            margin-top: 0.18rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .inspection-metric-limit {
+            margin-top: 0.12rem;
+            font-size: 0.62rem;
+            font-weight: 700;
+            white-space: nowrap;
         }
         [data-testid="stAlert"] {
             background: #d9d9d9 !important;
@@ -286,16 +322,16 @@ def inject_factory_styles() -> None:
             line-height: 1.15;
             overflow: hidden;
         }
-        .feature-signal-card.signal-low {
+        .feature-signal-card.signal-not-matched {
             background: #f4f4f4;
             color: #111111;
         }
-        .feature-signal-card.signal-caution {
+        .feature-signal-card.signal-missing {
             background: #5d5d5d;
             color: #ffffff;
         }
-        .feature-signal-card.signal-high {
-            background: #a93232;
+        .feature-signal-card.signal-matched {
+            background: #a86f10;
             color: #ffffff;
         }
         .feature-signal-name {
@@ -305,9 +341,15 @@ def inject_factory_styles() -> None:
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .feature-signal-meta {
+            margin-top: 0.18rem;
+            font-size: 0.64rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
         .feature-signal-value {
-            margin-top: 0.3rem;
-            font-size: 1.18rem;
+            margin-top: 0.18rem;
+            font-size: 1.05rem;
             font-weight: 800;
             white-space: nowrap;
             overflow: hidden;
@@ -318,6 +360,20 @@ def inject_factory_styles() -> None:
             font-size: 0.7rem;
             font-weight: 700;
             white-space: nowrap;
+        }
+        .feature-signal-empty {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #cdcdcd;
+            border-right: 1px solid #696969;
+            border-bottom: 1px solid #696969;
+            color: #2f2f2f;
+            font-size: 0.86rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
         }
         .decision-strip,
         .history-row {
@@ -351,6 +407,10 @@ def inject_factory_styles() -> None:
             background: #f5f5f5;
             color: #111111;
         }
+        .history-model-normal {
+            background: #d1d1d1;
+            color: #111111;
+        }
         .decision-defect,
         .history-defect {
             background: #555555;
@@ -372,22 +432,18 @@ def inject_factory_styles() -> None:
     )
 
 
-@st.cache_resource(show_spinner="모델을 불러오는 중입니다...")
-def load_predictor(model_path: str) -> TypeConditionedPredictor:
-    return TypeConditionedPredictor.from_file(model_path)
-
-
-@st.cache_data(show_spinner="Test 검사 데이터를 준비하는 중입니다...")
-def load_source(
+@st.cache_resource(show_spinner="모델과 Test 데이터를 불러오는 중입니다...")
+def load_dashboard_resources(
     csv_path: str,
-    test_start_exclusive: str,
-    deduplicate_rows: bool,
-) -> CSVInspectionSource:
-    return CSVInspectionSource.from_csv(
+    model_path: str,
+) -> tuple[TypeConditionedPredictor, CSVInspectionSource]:
+    predictor = TypeConditionedPredictor.from_file(model_path)
+    source = CSVInspectionSource.from_csv(
         csv_path,
-        test_start_exclusive,
-        deduplicate_rows=deduplicate_rows,
+        predictor.validation_end_time,
+        deduplicate_rows=predictor.deduplicate_rows,
     )
+    return predictor, source
 
 
 def load_image_paths(image_dir: str) -> list[Path]:
@@ -399,13 +455,15 @@ def initialize_session(source_signature: str) -> None:
         return
 
     st.session_state.source_signature = source_signature
-    st.session_state.cursor = 0
+    st.session_state.stream_cursor = 0
+    st.session_state.manual_count = 0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
 
 
 def reset_demo() -> None:
-    st.session_state.cursor = 0
+    st.session_state.stream_cursor = 0
+    st.session_state.manual_count = 0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
 
@@ -448,13 +506,15 @@ def build_current_view(
     sample_images: list[Path],
 ) -> dict[str, Any]:
     inspection_type = int(row[TYPE_COLUMN])
-    probability = predictor.predict_defect_probability(row)
+    if MODEL_PROBABILITY_COLUMN in row:
+        probability = float(row[MODEL_PROBABILITY_COLUMN])
+    else:
+        probability = predictor.predict_defect_probability(row)
     feature_signals = signal_provider.get_signals(
         row,
         inspection_type,
         count=6,
     )
-    cause = get_mock_cause_feature(row, MOCK_CAUSE_FEATURE_BY_TYPE)
     image_path = image_for_position(sample_images, position)
 
     return {
@@ -462,13 +522,59 @@ def build_current_view(
         "timestamp": row[TIME_COLUMN],
         "inspection_type": inspection_type,
         "defect_probability": probability,
-        "cause": cause,
+        "decision_threshold": predictor.decision_threshold,
         "feature_signals": feature_signals,
         STREAM_ORDER_COLUMN: int(row[STREAM_ORDER_COLUMN]),
         "image_path": str(image_path) if image_path else None,
         # Test 정답은 작업자 판정 전에 화면에 표시하지 않는다.
         "ground_truth": int(row["class"]),
     }
+
+
+def record_model_normal(
+    row: dict[str, Any],
+    probability: float,
+) -> None:
+    st.session_state.decision_history.insert(
+        0,
+        {
+            "record_id": row["record_id"],
+            TIME_COLUMN: row[TIME_COLUMN],
+            "inspection_type": int(row[TYPE_COLUMN]),
+            "defect_probability": float(probability),
+            STREAM_ORDER_COLUMN: int(row[STREAM_ORDER_COLUMN]),
+            "history_source": "model",
+        },
+    )
+
+
+def prepare_next_manual_view(
+    source: CSVInspectionSource,
+    predictor: TypeConditionedPredictor,
+    signal_provider: FeatureSignalProvider,
+    sample_images: list[Path],
+) -> dict[str, Any] | None:
+    """다음 CSV 행부터 단건 추론하며 첫 모델 불량 건에서 멈춘다."""
+    while st.session_state.stream_cursor < len(source):
+        row = source.get_item(int(st.session_state.stream_cursor))
+        if row is None:
+            return None
+
+        probability = predictor.predict_defect_probability(row)
+        if probability >= predictor.decision_threshold:
+            row[MODEL_PROBABILITY_COLUMN] = probability
+            return build_current_view(
+                row,
+                int(st.session_state.manual_count),
+                predictor,
+                signal_provider,
+                sample_images,
+            )
+
+        record_model_normal(row, probability)
+        st.session_state.stream_cursor += 1
+
+    return None
 
 
 def submit_decision(current_view: dict[str, Any], decision: str) -> None:
@@ -479,14 +585,16 @@ def submit_decision(current_view: dict[str, Any], decision: str) -> None:
     }
     st.session_state.previous_item = decided_item
     st.session_state.decision_history.insert(0, decided_item)
-    st.session_state.cursor += 1
+    st.session_state.stream_cursor += 1
+    st.session_state.manual_count += 1
     st.rerun()
 
 
 def render_current_panel(
     current_view: dict[str, Any] | None,
-    position: int,
-    total: int,
+    stream_position: int,
+    stream_total: int,
+    manual_number: int,
 ) -> None:
     if current_view is None:
         st.markdown(
@@ -494,8 +602,11 @@ def render_current_panel(
             unsafe_allow_html=True,
         )
         with st.container(border=True, key="current-inspection-grid"):
-            st.success("Test 큐의 모든 검사 건을 판정했습니다.")
-            if st.button("데모 처음부터 다시 시작", width="stretch"):
+            st.success("Test 스트림의 모든 검사 건을 처리했습니다.")
+            if stream_total > 0 and st.button(
+                "데모 처음부터 다시 시작",
+                width="stretch",
+            ):
                 reset_demo()
                 st.rerun()
         return
@@ -508,7 +619,8 @@ def render_current_panel(
     with st.container(border=True, key="current-inspection-grid"):
         st.markdown(
             '<div class="inspection-record-bar">'
-            f'QUEUE {position + 1:,} / {total:,} &nbsp;|&nbsp; '
+            f'STREAM {stream_position + 1:,} / {stream_total:,} &nbsp;|&nbsp; '
+            f'MANUAL REVIEW #{manual_number:,} &nbsp;|&nbsp; '
             f'RECORD #{current_view["record_id"]} &nbsp;|&nbsp; '
             f'{escape(str(timestamp))}'
             '</div>',
@@ -521,30 +633,53 @@ def render_current_panel(
         with info_column:
             metric_type, metric_probability = st.columns(2, gap="small")
             with metric_type:
-                st.metric(
-                    "INSPECTION TYPE",
-                    f"TYPE {current_view['inspection_type']}",
+                st.markdown(
+                    '<div class="inspection-metric">'
+                    '<div class="inspection-metric-label">INSPECTION TYPE</div>'
+                    '<div class="inspection-metric-value">TYPE '
+                    f'{current_view["inspection_type"]}</div>'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
             with metric_probability:
-                st.metric(
-                    "DEFECT PROBABILITY",
-                    format_probability(current_view["defect_probability"]),
+                probability_alert = (
+                    current_view["defect_probability"]
+                    >= current_view["decision_threshold"]
+                )
+                probability_class = (
+                    " probability-alert" if probability_alert else ""
+                )
+                st.markdown(
+                    f'<div class="inspection-metric{probability_class}">'
+                    '<div class="inspection-metric-label">DEFECT PROBABILITY</div>'
+                    '<div class="inspection-metric-value">'
+                    f'{format_probability(current_view["defect_probability"])}</div>'
+                    '<div class="inspection-metric-limit">GLOBAL LIMIT '
+                    f'{format_probability(current_view["decision_threshold"])}</div>'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
 
-            cause = current_view["cause"]
-            st.info(
-                f"**CAUSE FEATURE · DEMO**  \n"
-                f"{cause['feature']}  |  현재 값 "
-                f"`{format_value(cause['value'])}`  \n"
-                "SHAP 연동 준비 중"
-            )
+            feature_signals = current_view["feature_signals"]
+            if feature_signals:
+                top_signal = feature_signals[0]
+                st.info(
+                    "**GLOBAL SHAP TOP FEATURE · STATIC**  \n"
+                    f"{top_signal.feature}  |  "
+                    f"|SHAP| `{top_signal.contribution:.4f}`  \n"
+                    f"현재 값 `{format_value(top_signal.value)}`  |  "
+                    f"대표 조건 `{top_signal.condition}`"
+                )
+            else:
+                st.info(
+                    "**GLOBAL SHAP · STATIC**  \n"
+                    "TYPE 4  |  유효한 중요 feature 없음  \n"
+                    "전체 feature의 |SHAP| = 0"
+                )
 
     feature_signals = current_view["feature_signals"]
-    is_demo = any(signal.source == "demo" for signal in feature_signals)
-    demo_suffix = " · DEMO" if is_demo else ""
     st.markdown(
-        '<div class="section-label">FEATURE SIGNAL / 주요 검사 신호'
-        f'{demo_suffix}</div>',
+        '<div class="section-label">GLOBAL SHAP / TYPE별 정적 중요 FEATURE</div>',
         unsafe_allow_html=True,
     )
     with st.container(
@@ -554,22 +689,30 @@ def render_current_panel(
     ):
         cards = []
         for signal in feature_signals:
-            source_prefix = "DEMO · " if signal.source == "demo" else ""
             cards.append(
                 f'<div class="feature-signal-card signal-{signal.level}">'
                 f'<div class="feature-signal-name">{escape(signal.feature)}</div>'
+                f'<div class="feature-signal-meta">GLOBAL #{signal.rank} · '
+                f'|SHAP| {signal.contribution:.4f}</div>'
                 f'<div class="feature-signal-value">'
                 f'{escape(format_value(signal.value))}</div>'
                 f'<div class="feature-signal-state">'
-                f'{source_prefix}{escape(signal.label)}</div>'
+                f'{escape(signal.label)}</div>'
                 f'</div>'
+            )
+
+        if not cards:
+            cards.append(
+                '<div class="feature-signal-empty">'
+                'TYPE 4 · 유효한 GLOBAL SHAP 신호 없음'
+                '</div>'
             )
 
         st.markdown(
             '<div class="feature-signal-board">'
             '<div class="feature-signal-note">'
-            '<span>TYPE별 모델 중요도 상위 6개 · 현재 값</span>'
-            f'<span>{"SHAP 미연동" if is_demo else "SHAP 연동"}</span>'
+            '<span>Dongjin 027 · 전역 |SHAP| 상위 6개 · 현재 값 / 대표 split</span>'
+            '<span>STATIC</span>'
             '</div>'
             '<div class="feature-signal-cells">'
             f'{"".join(cards)}'
@@ -625,23 +768,31 @@ def render_previous_panel(previous_item: dict[str, Any] | None) -> None:
             if previous_item["operator_decision"] == "defect"
             else "decision-normal"
         )
+        previous_signals = previous_item["feature_signals"]
+        shap_summary = (
+            f"Global SHAP {previous_signals[0].feature}"
+            if previous_signals
+            else "Global SHAP 유효 신호 없음"
+        )
         st.markdown(
             f'<div class="decision-strip {decision_class}">'
             f'<div class="decision-title">TYPE '
             f'{previous_item["inspection_type"]} | {decision_label}</div>'
             f'<div class="decision-detail">불량 확률 '
             f'{format_probability(previous_item["defect_probability"])}</div>'
-            f'<div class="decision-detail">원인 '
-            f'{previous_item["cause"]["feature"]} · DEMO</div>'
+            f'<div class="decision-detail">{escape(shap_summary)} · STATIC</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
 
-def render_history_panel(history: list[dict[str, Any]]) -> None:
+def render_history_panel(
+    history: list[dict[str, Any]],
+    total_count: int,
+) -> None:
     st.markdown(
-        f'<div class="section-label">OPERATOR LOG / 판정 히스토리 '
-        f'· {len(history):,}건</div>',
+        f'<div class="section-label">INSPECTION LOG / 판정 히스토리 '
+        f'· {total_count:,}건</div>',
         unsafe_allow_html=True,
     )
 
@@ -651,14 +802,28 @@ def render_history_panel(history: list[dict[str, Any]]) -> None:
         key="operator-history-grid",
     ):
         if not history:
-            st.caption("판정 버튼을 누르면 이곳에 기록이 쌓입니다.")
+            st.caption("검사 처리가 시작되면 이곳에 기록이 쌓입니다.")
             return
 
-        for index, item in enumerate(history[:HISTORY_DISPLAY_LIMIT]):
-            is_defect = item["operator_decision"] == "defect"
-            decision_label = "실제 불량" if is_defect else "정상"
-            history_class = "history-defect" if is_defect else "history-normal"
-            decided_time = pd.Timestamp(item["decided_at"]).strftime("%H:%M:%S")
+        for index, item in enumerate(history):
+            is_model_decision = item.get("history_source") == "model"
+            if is_model_decision:
+                decision_label = "모델판정 정상"
+                history_class = "history-model-normal"
+                decided_time = pd.Timestamp(item[TIME_COLUMN]).strftime(
+                    "%H:%M:%S"
+                )
+            else:
+                is_defect = item["operator_decision"] == "defect"
+                decision_label = (
+                    "작업자판정 실제 불량" if is_defect else "작업자판정 정상"
+                )
+                history_class = (
+                    "history-defect" if is_defect else "history-normal"
+                )
+                decided_time = pd.Timestamp(item["decided_at"]).strftime(
+                    "%H:%M:%S"
+                )
 
             st.markdown(
                 f'<div class="history-row {history_class}">'
@@ -668,7 +833,7 @@ def render_history_panel(history: list[dict[str, Any]]) -> None:
                 f'</div>',
                 unsafe_allow_html=True,
             )
-            if index < min(len(history), HISTORY_DISPLAY_LIMIT) - 1:
+            if index < len(history) - 1:
                 st.divider()
 
 
@@ -676,13 +841,11 @@ def main() -> None:
     inject_factory_styles()
 
     try:
-        predictor = load_predictor(str(MODEL_PATH))
-        signal_provider = build_feature_signal_provider(predictor)
-        source = load_source(
+        predictor, source = load_dashboard_resources(
             str(DATA_PATH),
-            predictor.validation_end_time,
-            predictor.deduplicate_rows,
+            str(MODEL_PATH),
         )
+        signal_provider = build_feature_signal_provider()
         sample_images = load_image_paths(str(SAMPLE_IMAGE_DIR))
     except Exception as error:
         st.error(f"대시보드를 초기화하지 못했습니다: {error}")
@@ -690,28 +853,27 @@ def main() -> None:
 
     source_signature = (
         f"{DATA_PATH}:{MODEL_PATH}:{predictor.validation_end_time}:"
-        f"{predictor.deduplicate_rows}:{len(source)}"
+        f"{predictor.deduplicate_rows}:{predictor.decision_threshold}:"
+        f"sequential:{len(source)}"
     )
     initialize_session(source_signature)
 
-    position = int(st.session_state.cursor)
-    row = source.get_item(position)
-
     try:
-        current_view = (
-            build_current_view(
-                row,
-                position,
-                predictor,
-                signal_provider,
-                sample_images,
-            )
-            if row is not None
-            else None
+        current_view = prepare_next_manual_view(
+            source,
+            predictor,
+            signal_provider,
+            sample_images,
         )
     except Exception as error:
         st.error(f"현재 검사 건을 준비하지 못했습니다: {error}")
         st.stop()
+
+    stream_position = int(st.session_state.stream_cursor)
+    manual_number = int(st.session_state.manual_count) + (
+        1 if current_view is not None else 0
+    )
+    stream_display = min(stream_position + 1, len(source))
 
     st.markdown(
         f"""
@@ -719,7 +881,7 @@ def main() -> None:
             <span>AOI MANUAL INSPECTION</span>
             <div class="factory-header-meta">
                 <small class="factory-header-model">MODEL · {escape(predictor.experiment_id)}</small>
-                <small>TEST QUEUE {min(position + 1, len(source)):,} / {len(source):,}</small>
+                <small>STREAM {stream_display:,} / {len(source):,} · MANUAL {manual_number:,}</small>
             </div>
         </div>
         """,
@@ -728,10 +890,18 @@ def main() -> None:
 
     main_column, side_column = st.columns([3, 1.15], gap="large")
     with main_column:
-        render_current_panel(current_view, position, len(source))
+        render_current_panel(
+            current_view,
+            stream_position,
+            len(source),
+            manual_number,
+        )
     with side_column:
         render_previous_panel(st.session_state.previous_item)
-        render_history_panel(st.session_state.decision_history)
+        render_history_panel(
+            st.session_state.decision_history[:HISTORY_DISPLAY_LIMIT],
+            len(st.session_state.decision_history),
+        )
 
 
 if __name__ == "__main__":

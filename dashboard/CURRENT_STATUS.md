@@ -20,12 +20,17 @@
 
 ### 검사 큐
 
-- `data/raw/dataset.csv`를 읽어 한 행씩 검사 대상으로 제공한다.
-- 모델 artifact의 Validation 종료 시각 이후 데이터만 Test 큐로 사용한다.
+- `data/raw/dataset.csv`의 Test 구간을 시간순으로 한 행씩 읽는다.
+- 모델 artifact의 Validation 종료 시각 이후 데이터만 Test 구간으로 사용한다.
 - 중복 제거 여부는 모델 artifact의 학습 정책을 따른다.
 - 현재 peace 005 모델은 중복 행을 제거하지 않는다.
-- 검사 큐는 시간순으로 정렬한다.
-- 현재 데이터와 모델을 기준으로 Test 큐는 88,052건이다.
+- Test 행은 시간순으로 정렬한다.
+- 다음 행이 들어올 때 단건 추론하며 전체 Test를 미리 판정하거나 별도 수동 검사 큐를
+  만들지 않는다.
+- 공통 threshold 미만이면 `모델판정 정상`으로 기록하고 즉시 다음 행으로 진행한다.
+- 공통 threshold 이상이면 스트림 진행을 멈추고 작업자에게 해당 행을 노출한다.
+- 현재 Test 스트림은 88,052건이다. 수동 검사 총건수는 미래 행을 미리 추론하지
+  않으므로 화면에서 사전에 표시하지 않는다.
 - CSV의 실제 정답인 `class`는 내부에 유지하지만 작업자 판정 전에는 노출하지 않는다.
 
 ### 모델 추론
@@ -35,32 +40,33 @@
   모델 네 개의 확률을 동일 가중 평균한다.
 - 각 checkpoint의 Type별 전처리기와 모델을 함께 artifact에서 불러온다.
 - 현재 행의 Inspection Type에 맞는 입력 feature만 추론에 전달한다.
-- Validation에서 선택한 공통 threshold `0.0007097449`를 artifact에서 읽을 수 있지만,
-  현재 화면에서는 작업자의 수동 판정을 대신하지 않는다.
+- Validation에서 선택한 공통 threshold `0.0007097449`를 artifact에서 읽어 수동 검사
+  대상 여부를 행마다 즉시 결정한다. threshold 이상인 모델 불량 판정만 작업자에게
+  노출하며, 작업자는 노출된 건의 실제 정상/불량을 최종 판정한다.
 
 ### Feature 신호 그리드
 
 - 시계열 그래프 대신 `2 × 3` feature 신호 그리드를 제공한다.
-- 네 checkpoint 모델의 encoded `feature_importances_`를 원본 feature 기준으로 합산해
-  상위 6개를 고정 위치에 표시한다.
-- 각 셀에는 feature 이름, 현재 행의 값과 상태를 표시한다.
-- SHAP 연동 전 상태색은 Record ID를 기준으로 결정되는 화면 검증용 임시값이다.
-- 임시 상태는 `영향 낮음`, `주의 신호`, `불량 방향 영향` 세 단계다.
-- 실제 모델 설명으로 오인되지 않도록 헤더와 각 셀에 `DEMO`, `SHAP 미연동`을
-  표시한다.
-- UI는 `FeatureSignalProvider` 규격만 사용하므로 실제 SHAP 계산기는 별도 구현 후
-  교체할 수 있다.
-- `build_feature_signal_provider()` 팩토리가 현재 데모 공급자를 선택한다. 실제 SHAP
-  공급자가 준비되면 팩토리 반환 구현을 변경하고 각 신호에 `source="shap"`, SHAP
-  기여도와 방향을 채우면 UI의 DEMO 표시는 자동으로 제거된다.
+- Dongjin 027의 Test 전체 Global SHAP 분석에서 계산한 Type별 `mean(|SHAP|)` 상위
+  6개를 고정 위치에 표시한다.
+- 각 셀에는 Global SHAP 순위, 중요도, 현재 값과 대표 tree split을 표시한다.
+- 대표 split은 네 checkpoint 모델의 같은 feature split 중 Total Cover가 가장 큰
+  값이다.
+- 대표 조건 일치는 주황색, 불일치는 밝은 회색, 값 없음은 진한 회색으로 표시한다.
+- 색상은 tree split 조건 일치 여부이며 불량 확률을 높이는 방향을 뜻하지 않는다.
+- Type 4는 전체 feature의 Global SHAP가 0이므로 유효한 신호가 없다고 표시한다.
+- UI는 `FeatureSignalProvider` 규격을 유지하므로 향후 Local SHAP 공급자로 교체할 수
+  있다.
 
 ### 작업자 판정
 
 - `NORMAL / 정상 판정`과 `DEFECT / 실제 불량 판정` 버튼을 제공한다.
-- 판정 시 현재 항목을 직전 검사 결과로 옮기고 큐의 다음 행으로 진행한다.
+- 판정 시 현재 항목을 직전 검사 결과로 옮기고 Test 스트림의 다음 행을 추론한다.
 - 판정 시각, Record ID, Inspection Type, 모델 불량 확률과 작업자 판정을 히스토리에
   기록한다.
-- 직전 검사 결과와 판정 히스토리는 `st.session_state`에만 저장한다.
+- 단건 추론에서 자동 통과한 행도 즉시 `모델판정 정상`으로 같은 히스토리에 기록한다.
+  수동 검사 건은 `작업자판정 정상` 또는 `작업자판정 실제 불량`으로 구분한다.
+- 모델 판정, 작업자 판정과 직전 검사 결과는 `st.session_state`에 저장한다.
 - 데이터베이스나 파일에는 기록하지 않으므로 앱 세션이 초기화되면 판정도 사라진다.
 
 ### 샘플 이미지
@@ -68,7 +74,7 @@
 - `dashboard/assets/sample_images/`의 JPG 10장을 이름순으로 읽는다.
 - 파일 확장자의 대소문자는 구분하지 않는다.
 - CSV 행과 이미지는 아직 연결되어 있지 않다.
-- 큐 위치를 기준으로 10장을 반복해 화면에 표시한다.
+- 수동 검사 노출 순번을 기준으로 10장을 반복해 화면에 표시한다.
 
 ## 현재 UI 기준
 
@@ -77,7 +83,7 @@
 - 모바일 및 반응형 레이아웃 미지원
 - 화면 전체를 카드 모음이 아닌 2열 고정 그리드로 구성
 - 좌측: 현재 검사, feature 신호 6개, 판정 버튼
-- 우측: 직전 검사 결과, 작업자 판정 히스토리
+- 우측: 직전 검사 결과, 모델·작업자 통합 처리 히스토리
 - 전체 페이지 스크롤 없이 한 화면에 표시
 - 히스토리가 길어지면 히스토리 셀 내부에서만 스크롤
 - 회색조 배경과 각진 실선 구획 사용
@@ -86,38 +92,30 @@
 
 ## 임시 구현 및 제한사항
 
-### SHAP 원인 feature
+### Global SHAP 해석 범위
 
-SHAP 연동은 아직 구현되지 않았다. 현재 원인 feature는 UI와 인터페이스 확인을 위한
-Type별 고정 데모 값이다.
-
-| Inspection Type | 임시 원인 feature |
-|---|---|
-| 0 | `inspection_feat24` |
-| 1 | `inspection_feat48` |
-| 2 | `inspection_feat96` |
-| 3 | `inspection_feat95` |
-| 4 | `inspection_feat34` |
-
-화면에서도 `DEMO`와 `SHAP 연동 준비 중`으로 명시한다. 이 값은 모델의 실제 개별
-예측 기여도나 feature 신호 그리드의 임시 상태와 연동되지 않는다.
+현재 화면은 미리 계산한 전역 `mean(|SHAP|)`와 대표 tree split을 사용한다. 현재 검사
+한 건의 Local SHAP를 계산하지 않으므로, 표시된 feature와 조건을 해당 건의 불량
+원인이나 불량 방향으로 해석하면 안 된다. 범주형 feature의 대표 split은 작업자용
+수치 threshold 대신 원본 category 일치 조건으로 변환해 표시한다.
 
 ### 아직 없는 기능
 
 - 판정 결과의 영구 저장 및 감사 로그
 - 여러 작업자 또는 여러 브라우저 세션 간 상태 공유
 - 실제 검사 이미지와 CSV Record ID 연결
-- 실제 SHAP 계산과 원인 feature 자동 선택
+- 검사 건별 Local SHAP 계산과 불량 방향 판정
 - 큐 중간 재시작을 위한 체크포인트
+- 모델 정상 판정 전체를 검색하는 별도 조회 화면과 영구 추론 감사 로그
 - 작업자 인증 및 권한 관리
 
 ## 파일별 역할
 
 - `dashboard/app.py`: Streamlit 화면, 세션 상태와 판정 상호작용
-- `dashboard/data_source.py`: CSV 전처리, Test 큐와 시계열 데이터 제공
-- `dashboard/explanation.py`: 교체 가능한 feature 신호 규격과 데모 공급자
+- `dashboard/data_source.py`: CSV 전처리와 시간순 Test 스트림 제공
+- `dashboard/explanation.py`: Dongjin 027 기반 정적 Global SHAP 규칙과 신호 공급자
 - `dashboard/inference.py`: Type별 모델 로딩, 확률 추론과 중요 feature 조회
-- `dashboard/config.py`: 데이터·모델·이미지 경로와 데모 설정
+- `dashboard/config.py`: 데이터·모델·이미지 경로와 실행 설정
 - `dashboard/requirements.txt`: 저장 모델과 호환되는 Python 패키지 버전
 - `dashboard/assets/sample_images/`: CSV와 독립적으로 반복하는 샘플 이미지
 - `dashboard/README.md`: 설치 및 실행 방법
@@ -128,10 +126,16 @@ Type별 고정 데모 값이다.
 ## 검증된 내용
 
 - `python -m py_compile dashboard/*.py` 통과
+- Test 행이 단건 추론되고 정상 행에서 자동 진행되는 것 확인
+- 모델 불량 행에서 진행을 멈추고 작업자 판정 후 다음 행부터 재개하는 것 확인
 - Streamlit AppTest에서 앱 초기화, feature 신호 6개, 정상 판정과 다음 큐 이동 확인
+- 정적 Global SHAP 규칙의 연속형·범주형 대표 조건 비교 확인
+- 공통 probability threshold 초과 시 빨간색 경고 표시 확인
+- Type 4의 Global SHAP 빈 상태 표시 확인
 - peace 005 artifact 저장 후 reload 예측 일치 검사 통과
 - 1280 × 720 브라우저에서 전체 페이지 스크롤이 생기지 않는 것 확인
 - 정상 판정 후 직전 검사 결과와 히스토리가 갱신되는 것 확인
+- 모델 정상 판정과 작업자 판정이 처리 순서대로 같은 히스토리에 표시되는 것 확인
 - 직전 검사 결과 텍스트와 히스토리 헤더가 겹치지 않는 것 확인
 - 카드 간 외부 간격 없이 그리드 경계가 연결되는 것 확인
 
@@ -148,7 +152,7 @@ streamlit run dashboard/app.py
 
 ## 다음 작업 후보
 
-1. 팀원이 준비하는 SHAP 결과 형식과 `inference.py`의 반환 규격을 합의한다.
+1. 검사 건별 Local SHAP 결과와 불량 방향 반환 규격을 합의한다.
 2. 작업자 판정 결과를 저장하거나 외부로 내보내는 인터페이스를 정의한다.
 3. 실제 검사 이미지 식별자와 Record ID 연결 규칙을 정한다.
 4. 현장 작업자 피드백을 받아 글자 크기, 경고 기준과 버튼 동작을 확정한다.

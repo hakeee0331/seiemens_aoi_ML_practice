@@ -11,6 +11,7 @@ TIME_COLUMN = "timestamp"
 TARGET_COLUMN = "class"
 TYPE_COLUMN = "inspection_type"
 STREAM_ORDER_COLUMN = "_stream_order"
+MODEL_PROBABILITY_COLUMN = "_model_defect_probability"
 
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 
