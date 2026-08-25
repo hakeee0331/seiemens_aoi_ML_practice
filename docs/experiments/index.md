@@ -51,7 +51,7 @@
 | `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
 | `0825_peace_003_type_expert_xgboost` | 완료 | peace | mapping 기반 검사유형별 XGBoost 전문가 모델과 임계값 전략 비교 | XGBoost (5 models) | Test 공통 임계값 Recall 89.8%/FCR 60.9%, 타입별 임계값 Recall 92.7%/FCR 46.7% |
 | `0825_peace_004_type_expert_walk_forward` | 완료 | peace | 타입별 XGBoost의 3-Fold expanding Walk-forward 임계값 안정성 검증 | XGBoost (5 models) | 미래 Fold 공통 임계값 평균 Recall 96.9%(2/3 Fold 99%), 타입별 평균 Recall 92.4%(1/3 Fold 99%) |
-| `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0% |
+| `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 models, bundle saved) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0%; 내부 Champion 번들 저장 |
 | `0825_peace_006_type_expert_sequential_update` | 완료 | peace | 시간 배치별 XGBoost 순차 업데이트 학습·추론 | Sequential XGBoost (5 final models) | Test PR-AUC 0.278, 공통 임계값 Recall 94.5%/FCR 40.5% |
 | `0825_peace_007_type_expert_class_weight` | 완료 | peace | 타입·Fold별 클래스 불균형 가중치 실험 | XGBoost (5 models) | Test PR-AUC 0.319, 공통 임계값 Recall 98.5%/FCR 10.1% |
 | `0825_peace_008_type_expert_time_weight` | 완료 | peace | Train 시간순 1.0→2.0 선형 sample weight 실험 | XGBoost (5 models) | Test PR-AUC 0.372, 공통 임계값 Recall 90.8%/FCR 49.8% |
@@ -59,6 +59,8 @@
 | `0825_peace_010_type_expert_sqrt_class_time_weight` | 완료 | peace | sqrt 클래스 가중치와 시간 1.0→2.0 가중치 결합 | XGBoost (5 models) | Test PR-AUC 0.385, 공통 임계값 Recall 96.0%/FCR 19.1% |
 | `0825_peace_011_type_expert_fold_ensemble_time_weight` | 완료 | peace | Fold 앙상블에 Train 시간순 1.0→2.0 sample weight 결합 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.390, 공통 Recall 93.9%/FCR 43.3%; 내부 Champion은 005 유지 |
 | `0825_peace_012_recall_aligned_model_comparison` | 완료 | peace | 003·005·007을 동일 Calibration Recall 95%·97%·99%에서 FP/FCR 비교 | XGBoost 3전략 비교 | 목표 99%에서 005가 미래 평균 Recall 98.7%·FP 최소; 005+007 오류 보완성 확인 |
+| `0825_peace_013_type_expert_fold_class_soft_voting` | 완료 | peace | 005 Fold 앙상블과 007 클래스 가중치 모델을 Platt 보정 후 soft voting | XGBoost soft voting | Walk-forward가 alpha=1.00(005만 사용)을 선택해 결합 이득 없음; 내부 Champion 005 유지 |
+| `0825_peace_014_joint_type_threshold_optimization` | 완료 | peace | 007 모델의 전체 Recall 제약 기반 타입별 임계값 공동 최적화 | XGBoost + joint type thresholds | Test FP 17,845개 감소·FCR +20.82%p, Recall 94.06%로 99% 목표 미달 |
 
 
 ## 상태 값
