@@ -68,7 +68,8 @@ def inject_factory_styles() -> None:
             gap: 0;
         }
         [data-testid="stMarkdownContainer"]:has(.factory-header),
-        [data-testid="stMarkdownContainer"]:has(.section-label) {
+        [data-testid="stMarkdownContainer"]:has(.section-label),
+        [data-testid="stMarkdownContainer"]:has(.inspection-record-bar) {
             margin-bottom: 0 !important;
         }
         [data-testid="stElementContainer"]:has(.factory-header)
@@ -113,6 +114,19 @@ def inject_factory_styles() -> None:
             font-size: 0.76rem;
             font-weight: 600;
             letter-spacing: 0;
+        }
+        .factory-header-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            min-width: 0;
+        }
+        .factory-header-model {
+            color: #5a5a5a !important;
+            font-size: 0.68rem !important;
+            font-weight: 500 !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .section-label {
             box-sizing: border-box;
@@ -190,6 +204,23 @@ def inject_factory_styles() -> None:
         .st-key-operator-history-grid {
             border-top-width: 0 !important;
         }
+        .inspection-record-bar {
+            box-sizing: border-box;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            background: #e3e3e3;
+            border: 1px solid #777777;
+            padding: 0 0.5rem;
+            color: #363636;
+            font-family: Arial, sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         [data-testid="stButton"] button {
             min-height: 40px;
             border: 1px solid #31383c;
@@ -239,7 +270,7 @@ def inject_factory_styles() -> None:
         .feature-signal-cells {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            grid-template-rows: repeat(2, 118px);
+            grid-template-rows: repeat(2, 109px);
             border-top: 1px solid #696969;
             border-left: 1px solid #696969;
         }
@@ -350,8 +381,13 @@ def load_predictor(model_path: str) -> TypeConditionedPredictor:
 def load_source(
     csv_path: str,
     test_start_exclusive: str,
+    deduplicate_rows: bool,
 ) -> CSVInspectionSource:
-    return CSVInspectionSource.from_csv(csv_path, test_start_exclusive)
+    return CSVInspectionSource.from_csv(
+        csv_path,
+        test_start_exclusive,
+        deduplicate_rows=deduplicate_rows,
+    )
 
 
 def load_image_paths(image_dir: str) -> list[Path]:
@@ -375,7 +411,14 @@ def reset_demo() -> None:
 
 
 def format_probability(probability: float) -> str:
-    return f"{probability * 100:.1f}%"
+    percentage = probability * 100
+    if percentage >= 10:
+        return f"{percentage:.1f}%"
+    if percentage >= 1:
+        return f"{percentage:.2f}%"
+    if percentage >= 0.1:
+        return f"{percentage:.3f}%"
+    return f"{percentage:.4f}%"
 
 
 def format_value(value: Any) -> str:
@@ -463,9 +506,13 @@ def render_current_panel(
         unsafe_allow_html=True,
     )
     with st.container(border=True, key="current-inspection-grid"):
-        st.caption(
-            f"QUEUE {position + 1:,} / {total:,}  |  "
-            f"RECORD #{current_view['record_id']}  |  {timestamp}"
+        st.markdown(
+            '<div class="inspection-record-bar">'
+            f'QUEUE {position + 1:,} / {total:,} &nbsp;|&nbsp; '
+            f'RECORD #{current_view["record_id"]} &nbsp;|&nbsp; '
+            f'{escape(str(timestamp))}'
+            '</div>',
+            unsafe_allow_html=True,
         )
         image_column, info_column = st.columns([1.7, 1], gap="medium")
         with image_column:
@@ -501,7 +548,7 @@ def render_current_panel(
         unsafe_allow_html=True,
     )
     with st.container(
-        height=288,
+        height=270,
         border=True,
         key="feature-signal-grid",
     ):
@@ -631,14 +678,19 @@ def main() -> None:
     try:
         predictor = load_predictor(str(MODEL_PATH))
         signal_provider = build_feature_signal_provider(predictor)
-        source = load_source(str(DATA_PATH), predictor.validation_end_time)
+        source = load_source(
+            str(DATA_PATH),
+            predictor.validation_end_time,
+            predictor.deduplicate_rows,
+        )
         sample_images = load_image_paths(str(SAMPLE_IMAGE_DIR))
     except Exception as error:
         st.error(f"대시보드를 초기화하지 못했습니다: {error}")
         st.stop()
 
     source_signature = (
-        f"{DATA_PATH}:{MODEL_PATH}:{predictor.validation_end_time}:{len(source)}"
+        f"{DATA_PATH}:{MODEL_PATH}:{predictor.validation_end_time}:"
+        f"{predictor.deduplicate_rows}:{len(source)}"
     )
     initialize_session(source_signature)
 
@@ -665,7 +717,10 @@ def main() -> None:
         f"""
         <div class="factory-header">
             <span>AOI MANUAL INSPECTION</span>
-            <small>TEST QUEUE {min(position + 1, len(source)):,} / {len(source):,}</small>
+            <div class="factory-header-meta">
+                <small class="factory-header-model">MODEL · {escape(predictor.experiment_id)}</small>
+                <small>TEST QUEUE {min(position + 1, len(source)):,} / {len(source):,}</small>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,

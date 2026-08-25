@@ -11,7 +11,7 @@ DATA_PATH = PROJECT_ROOT / "data" / "raw" / "dataset.csv"
 MODEL_PATH = (
     PROJECT_ROOT
     / "models"
-    / "0824_kimjaehak_006_type_conditioned_baseline.pkl"
+    / "0825_peace_005_type_expert_fold_ensemble.pkl"
 )
 SAMPLE_IMAGE_DIR = Path(__file__).resolve().parent / "assets" / "sample_images"
 

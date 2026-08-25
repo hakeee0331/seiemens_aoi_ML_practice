@@ -7,14 +7,14 @@
 ## 기록 기준
 
 - 기록일: 2026-08-25 (KST)
-- 브랜치: `27-layout`
-- 기준 HEAD: `835334e`
-- 기능 커밋: `fa13519 feat: add Streamlit manual inspection dashboard`
-- 문서 커밋: `835334e docs: document dashboard setup and usage`
+- 통합 브랜치: `26-dashboard`
+- 병합한 레이아웃 브랜치의 마지막 기능 커밋: `75b1c0d`
+- 최초 대시보드 기능 커밋: `fa13519`
+- 실행 문서 커밋: `835334e`
 
-이 문서를 작성한 시점의 기준 커밋에는 대시보드 코드, Streamlit 의존성, 샘플 JPG
-10장과 실행 문서가 포함되어 있다. 저장소의 별도 미추적 `docs` PDF와 `src/` 파일은
-대시보드 작업 및 위 커밋에 포함하지 않았다.
+`27-layout`의 변경사항은 `26-dashboard`로 통합했다. 현재 대시보드 범위에는 Streamlit
+코드, peace 005 앙상블 추론, 샘플 JPG 10장과 실행 문서가 포함되어 있다. 저장소의
+별도 미추적 `docs` PDF와 `src/` 파일은 대시보드 작업에 포함하지 않았다.
 
 ## 구현 완료 범위
 
@@ -22,23 +22,27 @@
 
 - `data/raw/dataset.csv`를 읽어 한 행씩 검사 대상으로 제공한다.
 - 모델 artifact의 Validation 종료 시각 이후 데이터만 Test 큐로 사용한다.
-- `record_id`와 `timestamp`를 제외한 컬럼이 모두 같은 행은 중복으로 제거한다.
+- 중복 제거 여부는 모델 artifact의 학습 정책을 따른다.
+- 현재 peace 005 모델은 중복 행을 제거하지 않는다.
 - 검사 큐는 시간순으로 정렬한다.
-- 현재 데이터와 모델을 기준으로 Test 큐는 78,396건이다.
+- 현재 데이터와 모델을 기준으로 Test 큐는 88,052건이다.
 - CSV의 실제 정답인 `class`는 내부에 유지하지만 작업자 판정 전에는 노출하지 않는다.
 
 ### 모델 추론
 
-- 모델: `models/0824_kimjaehak_006_type_conditioned_baseline.pkl`
-- Inspection Type별 XGBoost 모델을 사용해 불량 확률을 계산한다.
+- 모델: `models/0825_peace_005_type_expert_fold_ensemble.pkl`
+- 30%, 40%, 50%, 70% 누적 checkpoint에서 학습한 Inspection Type별 XGBoost
+  모델 네 개의 확률을 동일 가중 평균한다.
+- 각 checkpoint의 Type별 전처리기와 모델을 함께 artifact에서 불러온다.
 - 현재 행의 Inspection Type에 맞는 입력 feature만 추론에 전달한다.
-- 모델의 decision threshold는 artifact에서 읽을 수 있지만, 현재 화면에서는 작업자의
-  수동 판정을 대신하지 않는다.
+- Validation에서 선택한 공통 threshold `0.0007097449`를 artifact에서 읽을 수 있지만,
+  현재 화면에서는 작업자의 수동 판정을 대신하지 않는다.
 
 ### Feature 신호 그리드
 
 - 시계열 그래프 대신 `2 × 3` feature 신호 그리드를 제공한다.
-- 각 Inspection Type 모델의 `feature_importances_` 상위 6개를 고정 위치에 표시한다.
+- 네 checkpoint 모델의 encoded `feature_importances_`를 원본 feature 기준으로 합산해
+  상위 6개를 고정 위치에 표시한다.
 - 각 셀에는 feature 이름, 현재 행의 값과 상태를 표시한다.
 - SHAP 연동 전 상태색은 Record ID를 기준으로 결정되는 화면 검증용 임시값이다.
 - 임시 상태는 `영향 낮음`, `주의 신호`, `불량 방향 영향` 세 단계다.
@@ -114,6 +118,7 @@ Type별 고정 데모 값이다.
 - `dashboard/explanation.py`: 교체 가능한 feature 신호 규격과 데모 공급자
 - `dashboard/inference.py`: Type별 모델 로딩, 확률 추론과 중요 feature 조회
 - `dashboard/config.py`: 데이터·모델·이미지 경로와 데모 설정
+- `dashboard/requirements.txt`: 저장 모델과 호환되는 Python 패키지 버전
 - `dashboard/assets/sample_images/`: CSV와 독립적으로 반복하는 샘플 이미지
 - `dashboard/README.md`: 설치 및 실행 방법
 
@@ -124,6 +129,7 @@ Type별 고정 데모 값이다.
 
 - `python -m py_compile dashboard/*.py` 통과
 - Streamlit AppTest에서 앱 초기화, feature 신호 6개, 정상 판정과 다음 큐 이동 확인
+- peace 005 artifact 저장 후 reload 예측 일치 검사 통과
 - 1280 × 720 브라우저에서 전체 페이지 스크롤이 생기지 않는 것 확인
 - 정상 판정 후 직전 검사 결과와 히스토리가 갱신되는 것 확인
 - 직전 검사 결과 텍스트와 히스토리 헤더가 겹치지 않는 것 확인

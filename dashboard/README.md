@@ -15,18 +15,23 @@ CSV Test 구간을 시간순으로 한 행씩 표시하고 작업자의 정상/�
 저장소 루트에서 의존성을 설치하고 실행한다.
 
 ```bash
-pip install -r requirements.txt
+pip install -r dashboard/requirements.txt
 streamlit run dashboard/app.py
 ```
 
 기본 데이터와 모델 위치는 다음과 같다.
 
 - 데이터: `data/raw/dataset.csv`
-- 모델: `models/0824_kimjaehak_006_type_conditioned_baseline.pkl`
+- 모델: `models/0825_peace_005_type_expert_fold_ensemble.pkl`
 
-모델 artifact에 저장된 Validation 종료 시각 이후를 Test 큐로 사용한다. 원본
-데이터는 모델 학습 노트북과 동일하게 `record_id`와 `timestamp`를 제외한 완전
-중복 행을 제거한 뒤 시간순으로 정렬한다.
+모델 artifact에 저장된 Validation 종료 시각 이후를 Test 큐로 사용한다. 데이터의
+중복 제거 여부도 artifact의 학습 정책을 따른다. 현재 peace 005 모델은 원본 행을
+제거하지 않고 시간순으로 정렬하며 Test 큐는 88,052건이다.
+
+모델 파일은 Git에 포함되지 않는다. 모델이 없거나 scikit-learn 버전이 맞지 않으면
+`notebooks/0825_peace_005_type_expert_fold_ensemble.ipynb`를 현재 대시보드 환경에서
+실행해 artifact를 다시 생성한다. `dashboard/requirements.txt`는 모델을 생성한 버전을
+고정한다.
 
 ## 샘플 이미지
 
@@ -44,7 +49,8 @@ inspection_010.jpg
 
 ## 현재 데모 범위
 
-- 불량 확률은 저장된 Inspection Type별 XGBoost 모델에서 계산한다.
+- 불량 확률은 Inspection Type별 4개 checkpoint XGBoost 모델의 확률 평균으로
+  계산한다.
 - 시계열 그래프 대신 해당 Inspection Type 모델의 전역 중요도 상위 6개 feature를
   `2 × 3` 신호 그리드로 표시한다.
 - 신호 그리드는 현재 feature 값과 화면 검증용 임시 상태색을 표시한다. 상태색은

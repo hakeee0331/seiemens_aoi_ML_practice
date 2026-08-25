@@ -69,10 +69,14 @@ Walk-forward에서 학습한 누적 시간 모델들을 실제 Fold 앙상블로
 
 `models/0825_peace_005_type_expert_fold_ensemble.pkl`
 
-- 누적 체크포인트 4개 × Inspection Type 5개의 XGBoost 모델 20개와 전처리기를 함께 저장했다.
-- 타입별 피처 목록, 동일 가중 확률 평균 규칙, 공통·타입별 Validation 임계값을 번들에 포함했다.
-- 저장 파일을 다시 로드한 Validation 예측 확률이 저장 전 확률과 일치함을 확인했다.
-- 용량은 약 8.63 MB이며 내부 Champion 재현·후속 추론용이다. 모델 바이너리는 Git에 커밋하지 않는다.
+- 30%, 40%, 50%, 70% 누적 checkpoint × Inspection Type 5개의 XGBoost 모델
+  20개와 전처리기를 함께 저장했다.
+- 최종 추론에서는 Type에 해당하는 checkpoint 모델 4개의 확률을 동일 가중 평균한다.
+- Validation 종료 시각, 공통·Type별 threshold, Type별 feature 목록과 데이터 처리
+  정책을 번들에 포함했다.
+- 저장 파일을 다시 불러온 Validation 예측 확률이 저장 전 확률과 일치함을 확인했다.
+- 용량은 약 8.63 MB이며 내부 Champion 재현·후속 추론용이다. 모델 바이너리는 Git에
+  커밋하지 않으며, 필요하면 노트북을 현재 환경에서 실행해 생성한다.
 
 ## 실행 로그
 

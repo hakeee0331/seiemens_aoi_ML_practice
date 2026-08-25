@@ -33,6 +33,7 @@ class CSVInspectionSource:
         cls,
         csv_path: str | Path,
         test_start_exclusive: str | pd.Timestamp,
+        deduplicate_rows: bool = True,
     ) -> "CSVInspectionSource":
         csv_path = Path(csv_path)
         if not csv_path.exists():
@@ -59,17 +60,19 @@ class CSVInspectionSource:
         if not raw[RECORD_ID].is_unique:
             raise ValueError("record_id는 고유해야 합니다.")
 
-        # 모델 학습 노트북과 동일하게 record_id와 timestamp를 제외한 완전
-        # 중복 행은 원본에서 먼저 등장한 행만 유지한다.
-        dedup_columns = [
-            column
-            for column in raw.columns
-            if column not in {RECORD_ID, TIME_COLUMN}
-        ]
-        clean = raw.drop_duplicates(
-            subset=dedup_columns,
-            keep="first",
-        ).copy()
+        if deduplicate_rows:
+            # 구형 baseline artifact의 학습 전처리와 동일한 중복 제거 정책이다.
+            dedup_columns = [
+                column
+                for column in raw.columns
+                if column not in {RECORD_ID, TIME_COLUMN}
+            ]
+            clean = raw.drop_duplicates(
+                subset=dedup_columns,
+                keep="first",
+            ).copy()
+        else:
+            clean = raw.copy()
 
         clean[TIME_COLUMN] = pd.to_datetime(
             clean[TIME_COLUMN],
