@@ -32,6 +32,7 @@
 | `0825_lsw_008_adaptive_threshold` | 완료 | lsw | 모델 고정(재학습 없음) + 과거 확정 데이터로 임계값만 재조정 — frozen/adaptive_threshold/006 full retrain 3정책 비교 | XGBoost (고정 모델, type×step) | type0/1/3은 재학습(006)이 오히려 최악, frozen이 최선. type2의 "임계값 재조정 11%↓"는 006/008 슬라이딩 구조 한정 결과 — 표준 60:20:20 틀로 재검증하니 효과 소멸(-0.6%~+3.3%), type2는 undersample 유지 |
 | `0825_lsw_009_xgboost_hyperparameter_search` | 완료 | lsw | XGBoost 하이퍼파라미터(정규화 계열) 랜덤서치 20개 — baseline 및 현재 최고 기법 대비 개선 여부 확인 | XGBoost (type×hyperparameter) | baseline 데이터만으로도 전 유형·전 시나리오 개선(type2/3은 30~40%↓) — 프로젝트 전체 최대 단일 개선. 현재 최고 기법 위에 얹어도 type1(1:10)/2/3 추가 개선 |
 | `0825_lsw_010_unsupervised_anomaly_detection` | 완료 | lsw | Isolation Forest 단독 평가 + 이상점수를 XGBoost 피처로 결합(로드맵 Phase 4) | Isolation Forest + XGBoost (type별) | 단독은 dongjin 결과대로 약함(재확인). 결합(이상점수 추가 피처)도 전 유형·전 시나리오에서 악화 — 004/007/009의 현재 최고를 못 이김 |
+| `0825_lsw_011_drift_quantification` | 완료 | lsw | 모순 라벨(판정기준 변화)의 통계적 유의성·시간 분포와 표준 Train/Val/Test 분할의 관계 정량화 | 해당 없음 (진단/통계) | 이항검정 p<0.000001로 판정기준 변화가 우연이 아님을 확인. 모순의 62.9%가 표준 Test 분할(16~18주차)에 집중 — drift가 완만한 게 아니라 Test 구간과 겹치는 후반부 사건성 변화임을 확인 |
 | `0824_dongjin_006_sentinel_masking` | 완료 | dongjin | 결측치 마스킹 가설(EXP_01) 실험 | XGBoost | PR-AUC 하락(0.201), 재현율 상승(29.5%) |
 | `0824_dongjin_007_moe_inspection_type` | 완료 | dongjin | 검사 유형별 독립 모델 분리(MoE) 가설(EXP_02) | XGBoost (5 models) | 모든 핵심 지표(PR-AUC, Recall) 큰 폭 상승 |
 | `0824_dongjin_008_masking_and_moe` | 완료 | dongjin | 결측치 마스킹 + MoE 결합 실험 | XGBoost (5 models) | MoE 단독과 결과 100% 동일 (상수 피처 무효화 입증) |
