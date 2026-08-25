@@ -59,6 +59,7 @@
 | `0825_peace_008_type_expert_time_weight` | 완료 | peace | Train 시간순 1.0→2.0 선형 sample weight 실험 | XGBoost (5 models) | Test PR-AUC 0.372, 공통 임계값 Recall 90.8%/FCR 49.8% |
 | `0825_peace_009_type_expert_sqrt_class_weight` | 완료 | peace | 제곱근으로 약화한 타입·Fold별 클래스 가중치 | XGBoost (5 models) | Test PR-AUC 0.379, 공통 임계값 Recall 95.9%/FCR 21.1% |
 | `0825_peace_010_type_expert_sqrt_class_time_weight` | 완료 | peace | sqrt 클래스 가중치와 시간 1.0→2.0 가중치 결합 | XGBoost (5 models) | Test PR-AUC 0.385, 공통 임계값 Recall 96.0%/FCR 19.1% |
+| `0825_dongjin_025_ensemble_shap_analysis` | 완료 | dongjin | 005_type_expert_fold_ensemble 모델 학습 재현 후 검사유형별 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (20 trained models) | 검사유형별 오탐(False Calls)을 유발하는 핵심 피처 10개와 Threshold 구간 도출 완료 |
 
 
 ## 상태 값
