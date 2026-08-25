@@ -65,6 +65,8 @@
 | `0825_peace_016_type_expert_past_change_features` | 완료 | peace | 직전 동일 타입 관측 대비 변화량 집계 피처 5개 추가 | XGBoost (5 models + past change FE) | Walk-forward 공통 Recall/FCR은 소폭 개선됐지만 Validation 공통 FCR 61.8%로 운영 성능 악화 |
 | `0825_peace_017_type_expert_typewise_meta_removal` | 완료 | peace | 타입별 `with_meta` / `without_meta` 비교 후 best 조합 선택 | XGBoost (typewise meta selection) | type 1/2/3은 no-meta가 유리했지만 공통 Recall 99% 조건 Validation FCR은 62.6%로 004보다 낮음 |
 | `0825_peace_018_type_expert_fold_ensemble_sensor_anomaly` | 완료 | peace | 005 Fold 앙상블에 Train-only robust z 센서 이상도 피처 5개 추가 | XGBoost Fold ensemble (20 models + sensor anomaly FE) | Validation PR-AUC는 0.390으로 소폭 상승했지만 공통 Recall 99% FCR 52.9%, Walk-forward 최저 Recall 88.8%로 악화; 005 유지 |
+| `0825_peace_019_type_expert_safe_preprocessing` | 완료 | peace | 타입 Train에서 상수·완전중복 컬럼만 제거하는 안전 전처리 | XGBoost (5 models) | Test PR-AUC 0.327, 공통 Recall 89.6%/FCR 59.1%; 성능 개선 기법으로는 미채택 |
+| `0825_peace_020_type_expert_preprocessing_correlation_residual` | 완료 | peace | 안전 전처리 후 시간 3블록 안정 상관 센서쌍의 직교 Residual 추가 | XGBoost (5 models + residual FE) | Test PR-AUC 0.329, 공통 Recall 90.0%/FCR 57.7%; Residual 미채택 |
 
 
 ## 상태 값
