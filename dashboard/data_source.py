@@ -117,6 +117,37 @@ class CSVInspectionSource:
             return None
         return self._test_rows.iloc[position].to_dict()
 
+    def build_labeled_history(
+        self,
+        labels_by_stream_order: dict[int, int],
+    ) -> pd.DataFrame:
+        """처리된 Test 행을 원본 CSV 스키마와 새 class로 반환한다."""
+        export_columns = [
+            column
+            for column in self._test_rows.columns
+            if column != STREAM_ORDER_COLUMN
+        ]
+        if not labels_by_stream_order:
+            return pd.DataFrame(columns=export_columns)
+
+        stream_orders = sorted(int(order) for order in labels_by_stream_order)
+        indexed_rows = self._test_rows.set_index(
+            STREAM_ORDER_COLUMN,
+            drop=False,
+        )
+        missing_orders = [
+            order for order in stream_orders if order not in indexed_rows.index
+        ]
+        if missing_orders:
+            missing = ", ".join(str(order) for order in missing_orders[:5])
+            raise ValueError(f"검사 내역의 원본 행을 찾을 수 없습니다: {missing}")
+
+        history = indexed_rows.loc[stream_orders].copy()
+        history[TARGET_COLUMN] = [
+            int(labels_by_stream_order[order]) for order in stream_orders
+        ]
+        return history[export_columns].reset_index(drop=True)
+
     def get_feature_trend(
         self,
         current_item: dict[str, Any],

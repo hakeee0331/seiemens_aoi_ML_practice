@@ -151,6 +151,52 @@ def inject_factory_styles() -> None:
             background: #c7c7c7;
             color: #222222 !important;
         }
+        .st-key-history-list-button button,
+        .st-key-history-back-button button {
+            display: flex !important;
+            min-height: 28px !important;
+            height: 28px !important;
+            padding: 0 0.45rem !important;
+            background: #e8e8e8 !important;
+            border: 1px solid #4c4c4c !important;
+            color: #111111 !important;
+            font-size: 0.66rem !important;
+            line-height: 1 !important;
+        }
+        .st-key-history-list-button [data-testid="stElementContainer"],
+        .st-key-history-list-button [data-testid="stButton"],
+        .st-key-history-back-button [data-testid="stElementContainer"],
+        .st-key-history-back-button [data-testid="stButton"] {
+            height: 28px !important;
+        }
+        .st-key-history-log-heading,
+        .st-key-history-page-heading {
+            position: relative;
+            height: 28px !important;
+            gap: 0 !important;
+        }
+        .st-key-history-log-heading .section-label {
+            padding-right: 5.3rem;
+        }
+        .st-key-history-page-heading .section-label {
+            padding-right: 7.8rem;
+        }
+        .st-key-history-log-heading
+        > [data-testid="stLayoutWrapper"]:has(.st-key-history-list-button) {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5rem;
+            z-index: 2;
+        }
+        .st-key-history-page-heading
+        > [data-testid="stLayoutWrapper"]:has(.st-key-history-back-button) {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 7.5rem;
+            z-index: 2;
+        }
         .section-label {
             box-sizing: border-box;
             height: 28px;
@@ -456,6 +502,13 @@ def inject_factory_styles() -> None:
         .history-row strong {
             font-weight: 800;
         }
+        .st-key-inspection-history-grid {
+            border-top-width: 0 !important;
+            background: #eeeeee !important;
+        }
+        .st-key-inspection-history-grid [data-testid="stDataFrame"] {
+            border: 1px solid #696969;
+        }
         hr {
             margin: 0.35rem 0 !important;
             border-color: #a6adb1 !important;
@@ -489,6 +542,8 @@ def load_image_paths(image_dir: str) -> list[Path]:
 
 def initialize_session(source_signature: str) -> None:
     if st.session_state.get("source_signature") == source_signature:
+        if "active_page" not in st.session_state:
+            st.session_state.active_page = "dashboard"
         return
 
     st.session_state.source_signature = source_signature
@@ -499,6 +554,7 @@ def initialize_session(source_signature: str) -> None:
     st.session_state.next_prediction_at = 0.0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
+    st.session_state.active_page = "dashboard"
 
 
 def reset_demo() -> None:
@@ -509,6 +565,11 @@ def reset_demo() -> None:
     st.session_state.next_prediction_at = 0.0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
+    st.session_state.active_page = "dashboard"
+
+
+def set_active_page(page: str) -> None:
+    st.session_state.active_page = page
 
 
 def format_probability(probability: float) -> str:
@@ -877,11 +938,20 @@ def render_history_panel(
     history: list[dict[str, Any]],
     total_count: int,
 ) -> None:
-    st.markdown(
-        f'<div class="section-label">INSPECTION LOG / 판정 히스토리 '
-        f'· {total_count:,}건</div>',
-        unsafe_allow_html=True,
-    )
+    with st.container(key="history-log-heading"):
+        st.markdown(
+            f'<div class="section-label">INSPECTION LOG / 판정 히스토리 '
+            f'· {total_count:,}건</div>',
+            unsafe_allow_html=True,
+        )
+        with st.container(key="history-list-button"):
+            st.button(
+                "FULL LIST",
+                key="open-inspection-history",
+                width="stretch",
+                on_click=set_active_page,
+                args=("history",),
+            )
 
     with st.container(
         height=397,
@@ -924,6 +994,84 @@ def render_history_panel(
                 st.divider()
 
 
+def build_history_labels(
+    history: list[dict[str, Any]],
+) -> dict[int, int]:
+    labels: dict[int, int] = {}
+    for item in history:
+        stream_order = int(item[STREAM_ORDER_COLUMN])
+        if item.get("history_source") == "model":
+            labels[stream_order] = 0
+        else:
+            labels[stream_order] = (
+                1 if item.get("operator_decision") == "defect" else 0
+            )
+    return labels
+
+
+def render_inspection_history_page(
+    predictor: TypeConditionedPredictor,
+    source: CSVInspectionSource,
+    stream_status: str,
+    stream_display: int,
+    manual_number: int,
+    status_label: str,
+    status_class: str,
+) -> None:
+    history = st.session_state.decision_history
+    labels = build_history_labels(history)
+    history_frame = source.build_labeled_history(labels)
+
+    st.markdown(
+        f"""
+        <div class="factory-header">
+            <span>AOI INSPECTION HISTORY</span>
+            <div class="factory-header-meta">
+                <small class="factory-header-model">MODEL · {escape(predictor.experiment_id)}</small>
+                <small class="factory-status {status_class}">{status_label}</small>
+                <small>STREAM {stream_display:,} / {len(source):,} · LABELED {len(history_frame):,}</small>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="history-page-heading"):
+        pending_text = (
+            f" · MANUAL #{manual_number:,} 판정 대기"
+            if stream_status == "manual_review"
+            else ""
+        )
+        st.markdown(
+            '<div class="section-label">CSV SCHEMA / 누적 검사 내역 '
+            f'· {len(history_frame):,}건{pending_text}</div>',
+            unsafe_allow_html=True,
+        )
+        with st.container(key="history-back-button"):
+            st.button(
+                "LIVE DASHBOARD",
+                key="back-to-live-dashboard",
+                width="stretch",
+                on_click=set_active_page,
+                args=("dashboard",),
+            )
+
+    with st.container(
+        height=650,
+        border=True,
+        key="inspection-history-grid",
+    ):
+        if history_frame.empty:
+            st.caption("처리된 검사 내역이 아직 없습니다.")
+        else:
+            st.dataframe(
+                history_frame,
+                width="stretch",
+                height=614,
+                hide_index=True,
+            )
+
+
 @st.fragment(run_every=STREAM_INTERVAL_SECONDS)
 def render_stream_dashboard(
     predictor: TypeConditionedPredictor,
@@ -954,6 +1102,18 @@ def render_stream_dashboard(
         "manual_review": ("MANUAL REVIEW", "status-manual"),
         "finished": ("FINISHED", "status-finished"),
     }.get(stream_status, ("UNKNOWN", "status-finished"))
+
+    if st.session_state.active_page == "history":
+        render_inspection_history_page(
+            predictor,
+            source,
+            stream_status,
+            stream_display,
+            manual_number,
+            status_label,
+            status_class,
+        )
+        return
 
     st.markdown(
         f"""
