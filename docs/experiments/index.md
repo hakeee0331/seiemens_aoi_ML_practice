@@ -23,6 +23,7 @@
 | `0825_kimjaehak_013_cost_free_model_performance` | 완료 | kimjaehak | 비용·threshold를 제외한 fixed·expanding·rolling-6 순수 모델 성능 비교 | Type-conditioned XGBoost (재학습) | Expanding의 positive-weighted type PR-AUC 0.472로 Fixed 0.405보다 높고 W09·W10 모두 개선 |
 | `0825_kimjaehak_014_cost_optimized_policy` | 완료 | kimjaehak | 비용 없는 모델 선택 후 직전 구간 비용 threshold의 walk-forward 민감도 검증 | Type-conditioned XGBoost + cost policy | 1:100에서 Expanding empirical 정책 비용 69,627, raw 0.5 대비 59.34%·동일 Fixed 정책 대비 24.1% 감소 |
 | `0825_kimjaehak_016_stable_feature_selection` | 완료 | kimjaehak | Train 내부 시간 importance 기반 검사유형별 보수적 feature selection | Type-conditioned XGBoost + stable feature selection | 피처 7.5% 감소에 그쳐 가설 기각; pooled PR-AUC 0.315→0.339, Type 2 no-meta는 별도 재검증 필요 |
+| `0825_kimjaehak_017_dongjin_026_threshold_fix` | 완료 | kimjaehak | dongjin_026의 고정 0.5 SHAP와 peace_005 Validation 공통 Threshold SHAP 비교 | XGBoost Fold ensemble SHAP 진단 | 기준 confusion matrix 재현; FP 분석 대상 159→41,118건, Threshold별 Top 5 피처가 Type 1/2/3에서 달라짐 |
 | `0823_lsw_002_baseline` | 완료 | lsw | 검사유형별 Dummy/LogReg/XGBoost baseline, 시간순 분할, Slip Rate/Volume Reduction/총비용 지표 고정 | XGBoost (type별) | 15개 조합 전부 임계값 0으로 fallback, Volume Reduction 0% — Slip Rate 1% 제약을 유형별로 걸면 표본 부족으로 사실상 0건 허용이 됨 |
 | `0824_lsw_003_structure_comparison` | 완료 | lsw | kimjaehak baseline과 동일 데이터 처리로 통합모델 vs 검사유형별 5분리 구조 순수 비교 | XGBoost (통합 1개 + type별 5개) | 통합모델 Slip Rate 0.22%/VolReduction 0.09%(안전하지만 무효), 5분리 pooled Slip Rate 3.78%(목표 위반)/VolReduction 31.4% — 표본 적은 유형일수록 Validation 임계값이 Test서 과적합 |
 | `0824_lsw_004_imbalance_handling` | 완료 | lsw | 5분리 구조에서 불균형 처리 기법(class_weight/SMOTE/ADASYN/undersampling) 비교 | XGBoost (type×기법) | 유형마다 최적 기법이 다름 — type1/2는 class_weight로 Slip Rate 개선, type0/3/4는 어떤 기법도 목표(≤1%) 미달성 |
@@ -64,7 +65,7 @@
 | `0825_peace_013_type_expert_fold_class_soft_voting` | 완료 | peace | 005 Fold 앙상블과 007 클래스 가중치 모델을 Platt 보정 후 soft voting | XGBoost soft voting | Walk-forward가 alpha=1.00(005만 사용)을 선택해 결합 이득 없음; 내부 Champion 005 유지 |
 | `0825_peace_014_joint_type_threshold_optimization` | 완료 | peace | 007 모델의 전체 Recall 제약 기반 타입별 임계값 공동 최적화 | XGBoost + joint type thresholds | Test FP 17,845개 감소·FCR +20.82%p, Recall 94.06%로 99% 목표 미달 |
 | `0825_dongjin_025_ensemble_shap_analysis` | 완료 | dongjin | 005_type_expert_fold_ensemble 모델 학습 재현 후 검사유형별 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (20 trained models) | 검사유형별 오탐(False Calls)을 유발하는 핵심 피처 10개와 Threshold 구간 도출 완료 |
-| `0826_dongjin_026_saved_ensemble_shap` | 완료 | dongjin | 저장된 005_type_expert_fold_ensemble 모델(`.pkl`)의 내부 전처리기를 직접 로드하여 False Positives(오탐)를 유발하는 Feature에 대한 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (Saved Bundle) | Type 1, 2, 3에서 오탐을 유발하는 주요 피처 파악 (Threshold=0.5 기준) |
+| `0826_dongjin_026_saved_ensemble_shap` | 완료 | dongjin | 저장된 005_type_expert_fold_ensemble 모델(`.pkl`)에서 고정 0.5 기준 False Positive의 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (Saved Bundle) | 고정 0.5 FP 166건 분석; peace_005 기준 FP 159건 및 공통 Threshold 분석은 kimjaehak_017에서 재검증 |
 | `0826_dongjin_027_global_ensemble_shap` | 완료 | dongjin | 특정 오탐에 국한하지 않고 전체 Test Set을 대상으로 클래스 0(정상)과 1(불량)을 분류할 때 가장 크게 의존한 Global Feature Importance 도출 | XGBoost Fold ensemble (Saved Bundle) | 각 Type별 Test 셋 전역에서 가장 기여도가 높은 핵심 피처 파악 완료 |
 
 

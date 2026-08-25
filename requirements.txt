@@ -8,4 +8,5 @@ pandas
 polars>=1.0
 scikit-learn
 seaborn
+shap==0.52.0
 xgboost
