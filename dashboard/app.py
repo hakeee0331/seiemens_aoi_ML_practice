@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from html import escape
 from pathlib import Path
+from time import monotonic
 from typing import Any
 
 import pandas as pd
@@ -13,6 +14,7 @@ from config import (
     HISTORY_DISPLAY_LIMIT,
     MODEL_PATH,
     SAMPLE_IMAGE_DIR,
+    STREAM_INTERVAL_SECONDS,
 )
 from data_source import (
     CSVInspectionSource,
@@ -128,6 +130,26 @@ def inject_factory_styles() -> None:
             font-weight: 500 !important;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+        .factory-status {
+            border: 1px solid #555555;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.65rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.04em !important;
+        }
+        .factory-status.status-running {
+            background: #444444;
+            color: #ffffff !important;
+        }
+        .factory-status.status-manual {
+            background: #a93232;
+            border-color: #7f1d1d;
+            color: #ffffff !important;
+        }
+        .factory-status.status-finished {
+            background: #c7c7c7;
+            color: #222222 !important;
         }
         .section-label {
             box-sizing: border-box;
@@ -275,6 +297,21 @@ def inject_factory_styles() -> None:
         [data-testid="stButton"] button[kind="secondary"] {
             background: #f7f7f7 !important;
             color: #111111 !important;
+        }
+        .stream-auto-decision {
+            box-sizing: border-box;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #d5d5d5;
+            border: 1px solid #555555;
+            padding: 0 0.65rem;
+            color: #111111;
+            font-family: Arial, sans-serif;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
         }
         [data-testid="stMarkdownContainer"]:has(.feature-signal-board) {
             margin-bottom: 0 !important;
@@ -457,6 +494,9 @@ def initialize_session(source_signature: str) -> None:
     st.session_state.source_signature = source_signature
     st.session_state.stream_cursor = 0
     st.session_state.manual_count = 0
+    st.session_state.stream_status = "running"
+    st.session_state.current_stream_view = None
+    st.session_state.next_prediction_at = 0.0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
 
@@ -464,6 +504,9 @@ def initialize_session(source_signature: str) -> None:
 def reset_demo() -> None:
     st.session_state.stream_cursor = 0
     st.session_state.manual_count = 0
+    st.session_state.stream_status = "running"
+    st.session_state.current_stream_view = None
+    st.session_state.next_prediction_at = 0.0
     st.session_state.previous_item = None
     st.session_state.decision_history = []
 
@@ -531,50 +574,74 @@ def build_current_view(
     }
 
 
-def record_model_normal(
-    row: dict[str, Any],
-    probability: float,
-) -> None:
+def record_model_normal(current_view: dict[str, Any]) -> None:
     st.session_state.decision_history.insert(
         0,
         {
-            "record_id": row["record_id"],
-            TIME_COLUMN: row[TIME_COLUMN],
-            "inspection_type": int(row[TYPE_COLUMN]),
-            "defect_probability": float(probability),
-            STREAM_ORDER_COLUMN: int(row[STREAM_ORDER_COLUMN]),
+            "record_id": current_view["record_id"],
+            TIME_COLUMN: current_view[TIME_COLUMN],
+            "inspection_type": int(current_view[TYPE_COLUMN]),
+            "defect_probability": float(
+                current_view["defect_probability"]
+            ),
+            STREAM_ORDER_COLUMN: int(
+                current_view[STREAM_ORDER_COLUMN]
+            ),
             "history_source": "model",
         },
     )
 
 
-def prepare_next_manual_view(
+def advance_stream_tick(
     source: CSVInspectionSource,
     predictor: TypeConditionedPredictor,
     signal_provider: FeatureSignalProvider,
     sample_images: list[Path],
-) -> dict[str, Any] | None:
-    """다음 CSV 행부터 단건 추론하며 첫 모델 불량 건에서 멈춘다."""
-    while st.session_state.stream_cursor < len(source):
-        row = source.get_item(int(st.session_state.stream_cursor))
-        if row is None:
-            return None
+) -> None:
+    """0.3초 tick마다 이전 정상 건을 기록하고 다음 한 행만 추론한다."""
+    if st.session_state.stream_status != "running":
+        return
+    if monotonic() < float(st.session_state.next_prediction_at):
+        return
 
-        probability = predictor.predict_defect_probability(row)
-        if probability >= predictor.decision_threshold:
-            row[MODEL_PROBABILITY_COLUMN] = probability
-            return build_current_view(
-                row,
-                int(st.session_state.manual_count),
-                predictor,
-                signal_provider,
-                sample_images,
-            )
-
-        record_model_normal(row, probability)
+    current_view = st.session_state.current_stream_view
+    if (
+        current_view is not None
+        and current_view.get("model_decision") == "normal"
+    ):
+        record_model_normal(current_view)
         st.session_state.stream_cursor += 1
 
-    return None
+    if st.session_state.stream_cursor >= len(source):
+        st.session_state.current_stream_view = None
+        st.session_state.stream_status = "finished"
+        return
+
+    row = source.get_item(int(st.session_state.stream_cursor))
+    if row is None:
+        st.session_state.current_stream_view = None
+        st.session_state.stream_status = "finished"
+        return
+
+    probability = predictor.predict_defect_probability(row)
+    row[MODEL_PROBABILITY_COLUMN] = probability
+    current_view = build_current_view(
+        row,
+        int(st.session_state.stream_cursor),
+        predictor,
+        signal_provider,
+        sample_images,
+    )
+    is_manual_review = probability >= predictor.decision_threshold
+    current_view["model_decision"] = (
+        "defect" if is_manual_review else "normal"
+    )
+    st.session_state.current_stream_view = current_view
+    st.session_state.next_prediction_at = (
+        monotonic() + STREAM_INTERVAL_SECONDS
+    )
+    if is_manual_review:
+        st.session_state.stream_status = "manual_review"
 
 
 def submit_decision(current_view: dict[str, Any], decision: str) -> None:
@@ -587,7 +654,11 @@ def submit_decision(current_view: dict[str, Any], decision: str) -> None:
     st.session_state.decision_history.insert(0, decided_item)
     st.session_state.stream_cursor += 1
     st.session_state.manual_count += 1
-    st.rerun()
+    st.session_state.current_stream_view = None
+    st.session_state.stream_status = "running"
+    # 작업자 입력은 자동 tick과 별개의 이벤트다. 다음 행을 즉시 준비해
+    # 판정 완료 화면이 0.3초 동안 남는 현상을 방지한다.
+    st.session_state.next_prediction_at = 0.0
 
 
 def render_current_panel(
@@ -617,10 +688,18 @@ def render_current_panel(
         unsafe_allow_html=True,
     )
     with st.container(border=True, key="current-inspection-grid"):
+        is_manual_review = (
+            current_view.get("model_decision") == "defect"
+        )
+        stream_mode = (
+            f"MANUAL REVIEW #{manual_number:,}"
+            if is_manual_review
+            else "MODEL AUTO CHECK"
+        )
         st.markdown(
             '<div class="inspection-record-bar">'
             f'STREAM {stream_position + 1:,} / {stream_total:,} &nbsp;|&nbsp; '
-            f'MANUAL REVIEW #{manual_number:,} &nbsp;|&nbsp; '
+            f'{stream_mode} &nbsp;|&nbsp; '
             f'RECORD #{current_view["record_id"]} &nbsp;|&nbsp; '
             f'{escape(str(timestamp))}'
             '</div>',
@@ -722,25 +801,33 @@ def render_current_panel(
         )
 
     with st.container(border=True, key="decision-grid"):
-        normal_column, defect_column = st.columns(2, gap="medium")
-        with normal_column:
-            normal_clicked = st.button(
-                "NORMAL / 정상 판정",
-                width="stretch",
-                key=f"normal-{current_view['record_id']}",
+        if is_manual_review:
+            normal_column, defect_column = st.columns(2, gap="medium")
+            with normal_column:
+                st.button(
+                    "NORMAL / 정상 판정",
+                    width="stretch",
+                    key=f"normal-{current_view['record_id']}",
+                    on_click=submit_decision,
+                    args=(current_view, "normal"),
+                )
+            with defect_column:
+                st.button(
+                    "DEFECT / 실제 불량 판정",
+                    type="primary",
+                    width="stretch",
+                    key=f"defect-{current_view['record_id']}",
+                    on_click=submit_decision,
+                    args=(current_view, "defect"),
+                )
+        else:
+            st.markdown(
+                '<div class="stream-auto-decision">'
+                '<span>MODEL NORMAL / 자동 정상 판정</span>'
+                '<span>NEXT INSPECTION · 0.3 SEC</span>'
+                '</div>',
+                unsafe_allow_html=True,
             )
-        with defect_column:
-            defect_clicked = st.button(
-                "DEFECT / 실제 불량 판정",
-                type="primary",
-                width="stretch",
-                key=f"defect-{current_view['record_id']}",
-            )
-
-    if normal_clicked:
-        submit_decision(current_view, "normal")
-    if defect_clicked:
-        submit_decision(current_view, "defect")
 
 
 def render_previous_panel(previous_item: dict[str, Any] | None) -> None:
@@ -837,43 +924,36 @@ def render_history_panel(
                 st.divider()
 
 
-def main() -> None:
-    inject_factory_styles()
-
+@st.fragment(run_every=STREAM_INTERVAL_SECONDS)
+def render_stream_dashboard(
+    predictor: TypeConditionedPredictor,
+    source: CSVInspectionSource,
+    signal_provider: FeatureSignalProvider,
+    sample_images: list[Path],
+) -> None:
     try:
-        predictor, source = load_dashboard_resources(
-            str(DATA_PATH),
-            str(MODEL_PATH),
-        )
-        signal_provider = build_feature_signal_provider()
-        sample_images = load_image_paths(str(SAMPLE_IMAGE_DIR))
-    except Exception as error:
-        st.error(f"대시보드를 초기화하지 못했습니다: {error}")
-        st.stop()
-
-    source_signature = (
-        f"{DATA_PATH}:{MODEL_PATH}:{predictor.validation_end_time}:"
-        f"{predictor.deduplicate_rows}:{predictor.decision_threshold}:"
-        f"sequential:{len(source)}"
-    )
-    initialize_session(source_signature)
-
-    try:
-        current_view = prepare_next_manual_view(
+        advance_stream_tick(
             source,
             predictor,
             signal_provider,
             sample_images,
         )
     except Exception as error:
-        st.error(f"현재 검사 건을 준비하지 못했습니다: {error}")
+        st.error(f"실시간 모델 판정을 처리하지 못했습니다: {error}")
         st.stop()
 
+    current_view = st.session_state.current_stream_view
+    stream_status = str(st.session_state.stream_status)
     stream_position = int(st.session_state.stream_cursor)
     manual_number = int(st.session_state.manual_count) + (
-        1 if current_view is not None else 0
+        1 if stream_status == "manual_review" else 0
     )
     stream_display = min(stream_position + 1, len(source))
+    status_label, status_class = {
+        "running": ("RUNNING", "status-running"),
+        "manual_review": ("MANUAL REVIEW", "status-manual"),
+        "finished": ("FINISHED", "status-finished"),
+    }.get(stream_status, ("UNKNOWN", "status-finished"))
 
     st.markdown(
         f"""
@@ -881,6 +961,7 @@ def main() -> None:
             <span>AOI MANUAL INSPECTION</span>
             <div class="factory-header-meta">
                 <small class="factory-header-model">MODEL · {escape(predictor.experiment_id)}</small>
+                <small class="factory-status {status_class}">{status_label}</small>
                 <small>STREAM {stream_display:,} / {len(source):,} · MANUAL {manual_number:,}</small>
             </div>
         </div>
@@ -902,6 +983,34 @@ def main() -> None:
             st.session_state.decision_history[:HISTORY_DISPLAY_LIMIT],
             len(st.session_state.decision_history),
         )
+
+
+def main() -> None:
+    inject_factory_styles()
+
+    try:
+        predictor, source = load_dashboard_resources(
+            str(DATA_PATH),
+            str(MODEL_PATH),
+        )
+        signal_provider = build_feature_signal_provider()
+        sample_images = load_image_paths(str(SAMPLE_IMAGE_DIR))
+    except Exception as error:
+        st.error(f"대시보드를 초기화하지 못했습니다: {error}")
+        st.stop()
+
+    source_signature = (
+        f"{DATA_PATH}:{MODEL_PATH}:{predictor.validation_end_time}:"
+        f"{predictor.deduplicate_rows}:{predictor.decision_threshold}:"
+        f"timed-stream:{STREAM_INTERVAL_SECONDS}:{len(source)}"
+    )
+    initialize_session(source_signature)
+    render_stream_dashboard(
+        predictor,
+        source,
+        signal_provider,
+        sample_images,
+    )
 
 
 if __name__ == "__main__":
