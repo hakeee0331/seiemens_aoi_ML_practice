@@ -61,6 +61,9 @@
 | `0825_peace_012_recall_aligned_model_comparison` | 완료 | peace | 003·005·007을 동일 Calibration Recall 95%·97%·99%에서 FP/FCR 비교 | XGBoost 3전략 비교 | 목표 99%에서 005가 미래 평균 Recall 98.7%·FP 최소; 005+007 오류 보완성 확인 |
 | `0825_peace_013_type_expert_fold_class_soft_voting` | 완료 | peace | 005 Fold 앙상블과 007 클래스 가중치 모델을 Platt 보정 후 soft voting | XGBoost soft voting | Walk-forward가 alpha=1.00(005만 사용)을 선택해 결합 이득 없음; 내부 Champion 005 유지 |
 | `0825_peace_014_joint_type_threshold_optimization` | 완료 | peace | 007 모델의 전체 Recall 제약 기반 타입별 임계값 공동 최적화 | XGBoost + joint type thresholds | Test FP 17,845개 감소·FCR +20.82%p, Recall 94.06%로 99% 목표 미달 |
+| `0825_peace_015_type_expert_sensor_anomaly_features` | 완료 | peace | Train-only robust z 센서 이상도 집계 피처 5개 추가 | XGBoost (5 models + sensor anomaly FE) | Validation PR-AUC 0.491로 상승했지만 공통 Recall 99% 조건 FCR은 69.0%로 004보다 소폭 하락 |
+| `0825_peace_016_type_expert_past_change_features` | 완료 | peace | 직전 동일 타입 관측 대비 변화량 집계 피처 5개 추가 | XGBoost (5 models + past change FE) | Walk-forward 공통 Recall/FCR은 소폭 개선됐지만 Validation 공통 FCR 61.8%로 운영 성능 악화 |
+| `0825_peace_017_type_expert_typewise_meta_removal` | 완료 | peace | 타입별 `with_meta` / `without_meta` 비교 후 best 조합 선택 | XGBoost (typewise meta selection) | type 1/2/3은 no-meta가 유리했지만 공통 Recall 99% 조건 Validation FCR은 62.6%로 004보다 낮음 |
 
 
 ## 상태 값
