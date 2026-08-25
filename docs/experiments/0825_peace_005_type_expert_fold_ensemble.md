@@ -28,6 +28,18 @@ Walk-forward에서 학습한 누적 시간 모델들을 실제 Fold 앙상블로
 | Validation | 70~80% | 44,026 | 357 |
 | Test | 80~100% | 88,052 | 2,325 |
 
+## 저장된 분할 데이터
+
+005 노트북의 timestamp group 경계를 그대로 적용한 분할 데이터를 `data/005_dataset/`에 저장했다.
+
+| 파일 | 행 수 | 실제 불량 수 | 용량 |
+|---|---:|---:|---:|
+| `train.csv` | 308,196 | 1,940 | 222.44 MB |
+| `validation.csv` | 44,026 | 357 | 32.00 MB |
+| `test.csv` | 88,052 | 2,325 | 63.70 MB |
+
+`split_metadata.json`에 분할 규칙, 기간, 행 수, 불량 수, 각 CSV와 원본 데이터의 SHA-256을 기록했다. CSV와 메타데이터는 민감 생성 데이터로 간주해 Git에 커밋하지 않는다.
+
 ## Walk-forward 결과
 
 | 전략 | 평균 PR-AUC | 평균 Recall | 최저 Recall | Recall 99% 달성 Fold | 평균 False Call Reduction |
@@ -55,7 +67,12 @@ Walk-forward에서 학습한 누적 시간 모델들을 실제 Fold 앙상블로
 
 ## 저장 모델
 
-해당 없음. 노트북 실행 중 실제 Fold 모델로 Validation/Test 확률을 생성하지만 모델 파일은 저장하지 않는다.
+`models/0825_peace_005_type_expert_fold_ensemble.pkl`
+
+- 누적 체크포인트 4개 × Inspection Type 5개의 XGBoost 모델 20개와 전처리기를 함께 저장했다.
+- 타입별 피처 목록, 동일 가중 확률 평균 규칙, 공통·타입별 Validation 임계값을 번들에 포함했다.
+- 저장 파일을 다시 로드한 Validation 예측 확률이 저장 전 확률과 일치함을 확인했다.
+- 용량은 약 8.63 MB이며 내부 Champion 재현·후속 추론용이다. 모델 바이너리는 Git에 커밋하지 않는다.
 
 ## 실행 로그
 
