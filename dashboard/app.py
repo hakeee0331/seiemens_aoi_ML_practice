@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +14,6 @@ from config import (
     MOCK_CAUSE_FEATURE_BY_TYPE,
     MODEL_PATH,
     SAMPLE_IMAGE_DIR,
-    TREND_WINDOW_SIZE,
 )
 from data_source import (
     CSVInspectionSource,
@@ -23,6 +23,7 @@ from data_source import (
     discover_sample_images,
     image_for_position,
 )
+from explanation import FeatureSignalProvider, build_feature_signal_provider
 from inference import TypeConditionedPredictor, get_mock_cause_feature
 
 
@@ -184,7 +185,7 @@ def inject_factory_styles() -> None:
         .st-key-operator-history-grid {
             border-left-width: 0 !important;
         }
-        .st-key-feature-trend-grid,
+        .st-key-feature-signal-grid,
         .st-key-decision-grid,
         .st-key-operator-history-grid {
             border-top-width: 0 !important;
@@ -208,18 +209,84 @@ def inject_factory_styles() -> None:
             background: #f7f7f7 !important;
             color: #111111 !important;
         }
-        [data-testid="stSelectbox"] [data-baseweb="select"],
-        [data-testid="stSelectbox"] [data-baseweb="select"] * {
-            border-radius: 0 !important;
+        [data-testid="stMarkdownContainer"]:has(.feature-signal-board) {
+            margin-bottom: 0 !important;
         }
-        [data-testid="stSelectbox"] [data-baseweb="select"] > div {
-            min-height: 34px;
-            background: #ffffff;
-            border-color: #515b60;
+        .feature-signal-board {
+            font-family: Arial, sans-serif;
         }
-        [data-testid="stSelectbox"] label p {
-            font-size: 0.75rem;
+        .feature-signal-note {
+            box-sizing: border-box;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #d9d9d9;
+            border: 1px solid #696969;
+            border-bottom: 0;
+            padding: 0 0.55rem;
+            color: #1a1a1a;
+            font-size: 0.76rem;
             font-weight: 800;
+        }
+        .feature-signal-note span:last-child {
+            border: 1px solid #696969;
+            background: #f4f4f4;
+            padding: 0.12rem 0.35rem;
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
+        }
+        .feature-signal-cells {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-rows: repeat(2, 118px);
+            border-top: 1px solid #696969;
+            border-left: 1px solid #696969;
+        }
+        .feature-signal-card {
+            box-sizing: border-box;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #696969;
+            border-bottom: 1px solid #696969;
+            padding: 0.45rem 0.55rem;
+            line-height: 1.15;
+            overflow: hidden;
+        }
+        .feature-signal-card.signal-low {
+            background: #f4f4f4;
+            color: #111111;
+        }
+        .feature-signal-card.signal-caution {
+            background: #5d5d5d;
+            color: #ffffff;
+        }
+        .feature-signal-card.signal-high {
+            background: #a93232;
+            color: #ffffff;
+        }
+        .feature-signal-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feature-signal-value {
+            margin-top: 0.3rem;
+            font-size: 1.18rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feature-signal-state {
+            margin-top: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
         }
         .decision-strip,
         .history-row {
@@ -334,12 +401,16 @@ def build_current_view(
     row: dict[str, Any],
     position: int,
     predictor: TypeConditionedPredictor,
+    signal_provider: FeatureSignalProvider,
     sample_images: list[Path],
 ) -> dict[str, Any]:
     inspection_type = int(row[TYPE_COLUMN])
     probability = predictor.predict_defect_probability(row)
-    important_features = predictor.important_features(inspection_type, count=2)
-    feature_options = predictor.feature_columns(inspection_type)
+    feature_signals = signal_provider.get_signals(
+        row,
+        inspection_type,
+        count=6,
+    )
     cause = get_mock_cause_feature(row, MOCK_CAUSE_FEATURE_BY_TYPE)
     image_path = image_for_position(sample_images, position)
 
@@ -349,8 +420,7 @@ def build_current_view(
         "inspection_type": inspection_type,
         "defect_probability": probability,
         "cause": cause,
-        "important_features": important_features,
-        "feature_options": feature_options,
+        "feature_signals": feature_signals,
         STREAM_ORDER_COLUMN: int(row[STREAM_ORDER_COLUMN]),
         "image_path": str(image_path) if image_path else None,
         # Test 정답은 작업자 판정 전에 화면에 표시하지 않는다.
@@ -374,7 +444,6 @@ def render_current_panel(
     current_view: dict[str, Any] | None,
     position: int,
     total: int,
-    source: CSVInspectionSource,
 ) -> None:
     if current_view is None:
         st.markdown(
@@ -423,43 +492,44 @@ def render_current_panel(
                 "SHAP 연동 준비 중"
             )
 
+    feature_signals = current_view["feature_signals"]
+    is_demo = any(signal.source == "demo" for signal in feature_signals)
+    demo_suffix = " · DEMO" if is_demo else ""
     st.markdown(
-        '<div class="section-label">FEATURE TREND / 공정 로그</div>',
+        '<div class="section-label">FEATURE SIGNAL / 주요 검사 신호'
+        f'{demo_suffix}</div>',
         unsafe_allow_html=True,
     )
-    with st.container(border=True, key="feature-trend-grid"):
-        chart_columns = st.columns(2, gap="medium")
-        feature_options = current_view["feature_options"]
-        inspection_type = current_view["inspection_type"]
+    with st.container(
+        height=288,
+        border=True,
+        key="feature-signal-grid",
+    ):
+        cards = []
+        for signal in feature_signals:
+            source_prefix = "DEMO · " if signal.source == "demo" else ""
+            cards.append(
+                f'<div class="feature-signal-card signal-{signal.level}">'
+                f'<div class="feature-signal-name">{escape(signal.feature)}</div>'
+                f'<div class="feature-signal-value">'
+                f'{escape(format_value(signal.value))}</div>'
+                f'<div class="feature-signal-state">'
+                f'{source_prefix}{escape(signal.label)}</div>'
+                f'</div>'
+            )
 
-        for chart_index, chart_column in enumerate(chart_columns):
-            default_feature = current_view["important_features"][chart_index]
-            default_index = feature_options.index(default_feature)
-            with chart_column:
-                selected_feature = st.selectbox(
-                    f"TREND {chart_index + 1} FEATURE",
-                    options=feature_options,
-                    index=default_index,
-                    key=f"trend-{chart_index + 1}-type-{inspection_type}",
-                )
-                trend = source.get_feature_trend(
-                    current_view,
-                    selected_feature,
-                    window_size=TREND_WINDOW_SIZE,
-                )
-                if trend.empty:
-                    st.warning("표시할 과거 로그가 없습니다.")
-                else:
-                    current_value = format_value(
-                        trend.iloc[-1][selected_feature]
-                    )
-                    chart_data = trend.set_index(TIME_COLUMN)[[selected_feature]]
-                    st.line_chart(
-                        chart_data,
-                        color="#404040",
-                        height=173,
-                    )
-                    st.caption(f"CURRENT VALUE  {current_value}")
+        st.markdown(
+            '<div class="feature-signal-board">'
+            '<div class="feature-signal-note">'
+            '<span>TYPE별 모델 중요도 상위 6개 · 현재 값</span>'
+            f'<span>{"SHAP 미연동" if is_demo else "SHAP 연동"}</span>'
+            '</div>'
+            '<div class="feature-signal-cells">'
+            f'{"".join(cards)}'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
     with st.container(border=True, key="decision-grid"):
         normal_column, defect_column = st.columns(2, gap="medium")
@@ -560,6 +630,7 @@ def main() -> None:
 
     try:
         predictor = load_predictor(str(MODEL_PATH))
+        signal_provider = build_feature_signal_provider(predictor)
         source = load_source(str(DATA_PATH), predictor.validation_end_time)
         sample_images = load_image_paths(str(SAMPLE_IMAGE_DIR))
     except Exception as error:
@@ -580,6 +651,7 @@ def main() -> None:
                 row,
                 position,
                 predictor,
+                signal_provider,
                 sample_images,
             )
             if row is not None
@@ -601,7 +673,7 @@ def main() -> None:
 
     main_column, side_column = st.columns([3, 1.15], gap="large")
     with main_column:
-        render_current_panel(current_view, position, len(source), source)
+        render_current_panel(current_view, position, len(source))
     with side_column:
         render_previous_panel(st.session_state.previous_item)
         render_history_panel(st.session_state.decision_history)

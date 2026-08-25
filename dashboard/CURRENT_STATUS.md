@@ -35,23 +35,20 @@
 - 모델의 decision threshold는 artifact에서 읽을 수 있지만, 현재 화면에서는 작업자의
   수동 판정을 대신하지 않는다.
 
-### Feature 시계열
+### Feature 신호 그리드
 
-- 시계열 그래프 2개를 제공한다.
-- 각 그래프는 현재 Inspection Type과 같은 과거 데이터만 사용한다.
-- 미래 데이터는 포함하지 않고 현재 검사 시점까지 최근 80건을 표시한다.
-- 각 Type 모델의 `feature_importances_` 상위 2개를 최초 기본값으로 사용한다.
-- 작업자가 선택기를 변경하면 해당 Type의 선택은 현재 Streamlit 세션에서 유지된다.
-
-현재 모델의 기본 feature는 다음과 같다.
-
-| Inspection Type | Trend 1 | Trend 2 |
-|---|---|---|
-| 0 | `inspection_feat56` | `inspection_feat44` |
-| 1 | `inspection_feat48` | `meta_feat1` |
-| 2 | `inspection_feat95` | `inspection_feat94` |
-| 3 | `inspection_feat96` | `inspection_feat12` |
-| 4 | `inspection_feat2` | `meta_feat4` |
+- 시계열 그래프 대신 `2 × 3` feature 신호 그리드를 제공한다.
+- 각 Inspection Type 모델의 `feature_importances_` 상위 6개를 고정 위치에 표시한다.
+- 각 셀에는 feature 이름, 현재 행의 값과 상태를 표시한다.
+- SHAP 연동 전 상태색은 Record ID를 기준으로 결정되는 화면 검증용 임시값이다.
+- 임시 상태는 `영향 낮음`, `주의 신호`, `불량 방향 영향` 세 단계다.
+- 실제 모델 설명으로 오인되지 않도록 헤더와 각 셀에 `DEMO`, `SHAP 미연동`을
+  표시한다.
+- UI는 `FeatureSignalProvider` 규격만 사용하므로 실제 SHAP 계산기는 별도 구현 후
+  교체할 수 있다.
+- `build_feature_signal_provider()` 팩토리가 현재 데모 공급자를 선택한다. 실제 SHAP
+  공급자가 준비되면 팩토리 반환 구현을 변경하고 각 신호에 `source="shap"`, SHAP
+  기여도와 방향을 채우면 UI의 DEMO 표시는 자동으로 제거된다.
 
 ### 작업자 판정
 
@@ -75,7 +72,7 @@
 - 공장 내 데스크톱 모니터 전용
 - 모바일 및 반응형 레이아웃 미지원
 - 화면 전체를 카드 모음이 아닌 2열 고정 그리드로 구성
-- 좌측: 현재 검사, feature 시계열 2개, 판정 버튼
+- 좌측: 현재 검사, feature 신호 6개, 판정 버튼
 - 우측: 직전 검사 결과, 작업자 판정 히스토리
 - 전체 페이지 스크롤 없이 한 화면에 표시
 - 히스토리가 길어지면 히스토리 셀 내부에서만 스크롤
@@ -99,7 +96,7 @@ Type별 고정 데모 값이다.
 | 4 | `inspection_feat34` |
 
 화면에서도 `DEMO`와 `SHAP 연동 준비 중`으로 명시한다. 이 값은 모델의 실제 개별
-예측 기여도나 시계열 그래프 기본값과 연동되지 않는다.
+예측 기여도나 feature 신호 그리드의 임시 상태와 연동되지 않는다.
 
 ### 아직 없는 기능
 
@@ -114,6 +111,7 @@ Type별 고정 데모 값이다.
 
 - `dashboard/app.py`: Streamlit 화면, 세션 상태와 판정 상호작용
 - `dashboard/data_source.py`: CSV 전처리, Test 큐와 시계열 데이터 제공
+- `dashboard/explanation.py`: 교체 가능한 feature 신호 규격과 데모 공급자
 - `dashboard/inference.py`: Type별 모델 로딩, 확률 추론과 중요 feature 조회
 - `dashboard/config.py`: 데이터·모델·이미지 경로와 데모 설정
 - `dashboard/assets/sample_images/`: CSV와 독립적으로 반복하는 샘플 이미지
@@ -125,7 +123,7 @@ Type별 고정 데모 값이다.
 ## 검증된 내용
 
 - `python -m py_compile dashboard/*.py` 통과
-- Streamlit AppTest에서 앱 초기화, selector 2개, 정상 판정과 다음 큐 이동 확인
+- Streamlit AppTest에서 앱 초기화, feature 신호 6개, 정상 판정과 다음 큐 이동 확인
 - 1280 × 720 브라우저에서 전체 페이지 스크롤이 생기지 않는 것 확인
 - 정상 판정 후 직전 검사 결과와 히스토리가 갱신되는 것 확인
 - 직전 검사 결과 텍스트와 히스토리 헤더가 겹치지 않는 것 확인

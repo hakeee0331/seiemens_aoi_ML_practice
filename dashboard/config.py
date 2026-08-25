@@ -15,7 +15,6 @@ MODEL_PATH = (
 )
 SAMPLE_IMAGE_DIR = Path(__file__).resolve().parent / "assets" / "sample_images"
 
-TREND_WINDOW_SIZE = 80
 HISTORY_DISPLAY_LIMIT = 50
 
 # SHAP 연동 전 화면 구성을 위한 명시적인 데모 값이다.
