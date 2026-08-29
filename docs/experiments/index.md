@@ -48,15 +48,25 @@
 | `0824_dongjin_019_rule_injection` | 완료 | dongjin | RuleFit 룰셋을 Boolean 변수로 데이터 주입 | XGBoost + ADASYN + Rule | 정밀도(Precision) 최고치 48.5% 달성 (오탐지 253건 대폭 감소) |
 | `0824_dongjin_020_dim_reduction` | 완료 | dongjin | 핵심 피처 21개 외 54개 피처 전면 삭제 (차원 축소) | XGBoost + ADASYN | 성능 폭락 (약한 변수들의 조합이 중요함을 입증) |
 | `0824_dongjin_021_adasyn_time_decay` | 완료 | dongjin | Type-Cond 분리 + ADASYN + Time-Decay 가중치 | XGBoost (5 models) | Test PR-AUC 0.260, Recall 35.3% (Temporal Drift 억제 절반의 성공) |
+| `0825_dongjin_022_shap_analysis` | 완료 | dongjin | Type-Conditioned 베이스라인 모델에 대한 검사유형별 SHAP 분석 | TreeSHAP | 각 검사유형별 핵심 피처 도출 및 XAI 확보 |
+| `0825_dongjin_024_xgb_native_thresholds` | 완료 | dongjin | XGBoost 내부 Tree에서 직접 False Call 유발 피처의 Threshold 추출 | TreeSHAP + XGBoost | Dashboard용 모델 결괏값 직관적 설명 가능성 확보 |
 | `0824_peace_002_mapping_aware_xgboost` | 진행 중 | peace | Mapping-aware 통합 XGBoost와 Walk-forward 안정성 검증 | XGBoost | 구현·축소 전체 경로 검증 완료, 36회 전체 학습 전 |
 | `0825_peace_003_type_expert_xgboost` | 완료 | peace | mapping 기반 검사유형별 XGBoost 전문가 모델과 임계값 전략 비교 | XGBoost (5 models) | Test 공통 임계값 Recall 89.8%/FCR 60.9%, 타입별 임계값 Recall 92.7%/FCR 46.7% |
 | `0825_peace_004_type_expert_walk_forward` | 완료 | peace | 타입별 XGBoost의 3-Fold expanding Walk-forward 임계값 안정성 검증 | XGBoost (5 models) | 미래 Fold 공통 임계값 평균 Recall 96.9%(2/3 Fold 99%), 타입별 평균 Recall 92.4%(1/3 Fold 99%) |
-| `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0% |
+| `0825_peace_005_type_expert_fold_ensemble` | 완료 | peace | 누적 시간 모델의 Fold 앙상블 학습·추론 | XGBoost Fold ensemble (20 models, bundle saved) | Test PR-AUC 0.383, 공통 임계값 Recall 93.9%/FCR 52.0%; 내부 Champion 번들 저장 |
 | `0825_peace_006_type_expert_sequential_update` | 완료 | peace | 시간 배치별 XGBoost 순차 업데이트 학습·추론 | Sequential XGBoost (5 final models) | Test PR-AUC 0.278, 공통 임계값 Recall 94.5%/FCR 40.5% |
 | `0825_peace_007_type_expert_class_weight` | 완료 | peace | 타입·Fold별 클래스 불균형 가중치 실험 | XGBoost (5 models) | Test PR-AUC 0.319, 공통 임계값 Recall 98.5%/FCR 10.1% |
 | `0825_peace_008_type_expert_time_weight` | 완료 | peace | Train 시간순 1.0→2.0 선형 sample weight 실험 | XGBoost (5 models) | Test PR-AUC 0.372, 공통 임계값 Recall 90.8%/FCR 49.8% |
 | `0825_peace_009_type_expert_sqrt_class_weight` | 완료 | peace | 제곱근으로 약화한 타입·Fold별 클래스 가중치 | XGBoost (5 models) | Test PR-AUC 0.379, 공통 임계값 Recall 95.9%/FCR 21.1% |
 | `0825_peace_010_type_expert_sqrt_class_time_weight` | 완료 | peace | sqrt 클래스 가중치와 시간 1.0→2.0 가중치 결합 | XGBoost (5 models) | Test PR-AUC 0.385, 공통 임계값 Recall 96.0%/FCR 19.1% |
+| `0825_peace_011_type_expert_fold_ensemble_time_weight` | 완료 | peace | Fold 앙상블에 Train 시간순 1.0→2.0 sample weight 결합 | XGBoost Fold ensemble (20 trained models) | Test PR-AUC 0.390, 공통 Recall 93.9%/FCR 43.3%; 내부 Champion은 005 유지 |
+| `0825_peace_012_recall_aligned_model_comparison` | 완료 | peace | 003·005·007을 동일 Calibration Recall 95%·97%·99%에서 FP/FCR 비교 | XGBoost 3전략 비교 | 목표 99%에서 005가 미래 평균 Recall 98.7%·FP 최소; 005+007 오류 보완성 확인 |
+| `0825_peace_013_type_expert_fold_class_soft_voting` | 완료 | peace | 005 Fold 앙상블과 007 클래스 가중치 모델을 Platt 보정 후 soft voting | XGBoost soft voting | Walk-forward가 alpha=1.00(005만 사용)을 선택해 결합 이득 없음; 내부 Champion 005 유지 |
+| `0825_peace_014_joint_type_threshold_optimization` | 완료 | peace | 007 모델의 전체 Recall 제약 기반 타입별 임계값 공동 최적화 | XGBoost + joint type thresholds | Test FP 17,845개 감소·FCR +20.82%p, Recall 94.06%로 99% 목표 미달 |
+| `0825_dongjin_025_ensemble_shap_analysis` | 완료 | dongjin | 005_type_expert_fold_ensemble 모델 학습 재현 후 검사유형별 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (20 trained models) | 검사유형별 오탐(False Calls)을 유발하는 핵심 피처 10개와 Threshold 구간 도출 완료 |
+| `0826_dongjin_026_saved_ensemble_shap` | 완료 | dongjin | 저장된 005_type_expert_fold_ensemble 모델(`.pkl`)의 내부 전처리기를 직접 로드하여 False Positives(오탐)를 유발하는 Feature에 대한 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (Saved Bundle) | Type 1, 2, 3에서 오탐을 유발하는 주요 피처 파악 (Threshold=0.5 기준) |
+| `0826_dongjin_027_global_ensemble_shap` | 완료 | dongjin | 특정 오탐에 국한하지 않고 전체 Test Set을 대상으로 클래스 0(정상)과 1(불량)을 분류할 때 가장 크게 의존한 Global Feature Importance 도출 | XGBoost Fold ensemble (Saved Bundle) | 각 Type별 Test 셋 전역에서 가장 기여도가 높은 핵심 피처 파악 완료 |
+| `0826_dongjin_029_sliding_shap_module` | 완료 | dongjin | 028번 실험에서 작성된 실시간 Sliding Window 기반 Dynamic SHAP 계산 코드를 재사용 가능한 함수로 분리 | 해당 없음 | calculate_sliding_shap 및 analyze_shap_convergence 함수 모듈화 |
 
 
 ## 상태 값
