@@ -28,6 +28,16 @@ jupyter lab
 
 노트북은 저장소 루트에서 Jupyter를 실행한 뒤 사용한다.
 
+## 수동 검사 대시보드
+
+CSV Test 구간을 시간순으로 검토하는 Streamlit 데모는 `dashboard/`에 있다.
+
+```bash
+streamlit run dashboard/app.py
+```
+
+샘플 이미지 이름과 현재 데모 범위는 `dashboard/README.md`에서 확인한다.
+
 ## 데이터
 
 원본 데이터는 `data/raw/`에 둔다. 실제 데이터 파일은 Git에서 제외된다.
@@ -70,6 +80,13 @@ siemens_aoi/
 ├── data/
 │   └── raw/
 │       └── .gitkeep
+├── dashboard/
+│   ├── app.py
+│   ├── data_source.py
+│   ├── inference.py
+│   ├── config.py
+│   └── assets/
+│       └── sample_images/
 ├── docs/
 │   ├── project_status.html
 │   ├── data_example.md

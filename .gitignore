@@ -23,6 +23,10 @@ env/
 data/raw/*
 !data/raw/.gitkeep
 
+# Generated split data for experiment 005
+data/005_dataset/*
+!data/005_dataset/.gitkeep
+
 # Generated model artifacts: keep only the directory placeholder
 models/*
 !models/.gitkeep
@@ -39,9 +43,6 @@ wandb/
 .DS_Store
 .idea/
 .vscode/
-
-# Personal AI agent config (per-person, not shared)
-CLAUDE.md
 
 # Temporary files
 *.log
