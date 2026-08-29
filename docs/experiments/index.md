@@ -69,6 +69,7 @@
 | `0825_dongjin_025_ensemble_shap_analysis` | 완료 | dongjin | 005_type_expert_fold_ensemble 모델 학습 재현 후 검사유형별 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (20 trained models) | 검사유형별 오탐(False Calls)을 유발하는 핵심 피처 10개와 Threshold 구간 도출 완료 |
 | `0826_dongjin_026_saved_ensemble_shap` | 완료 | dongjin | 저장된 005_type_expert_fold_ensemble 모델(`.pkl`)에서 고정 0.5 기준 False Positive의 SHAP 및 Threshold 추출 | XGBoost Fold ensemble (Saved Bundle) | 고정 0.5 FP 166건 분석; peace_005 기준 FP 159건 및 공통 Threshold 분석은 kimjaehak_017에서 재검증 |
 | `0826_dongjin_027_global_ensemble_shap` | 완료 | dongjin | 특정 오탐에 국한하지 않고 전체 Test Set을 대상으로 클래스 0(정상)과 1(불량)을 분류할 때 가장 크게 의존한 Global Feature Importance 도출 | XGBoost Fold ensemble (Saved Bundle) | 각 Type별 Test 셋 전역에서 가장 기여도가 높은 핵심 피처 파악 완료 |
+| `0826_dongjin_029_sliding_shap_module` | 완료 | dongjin | 028번 실험에서 작성된 실시간 Sliding Window 기반 Dynamic SHAP 계산 코드를 재사용 가능한 함수로 분리 | 해당 없음 | calculate_sliding_shap 및 analyze_shap_convergence 함수 모듈화 |
 
 
 ## 상태 값
